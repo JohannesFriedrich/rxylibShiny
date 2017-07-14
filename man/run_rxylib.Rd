@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_rxylib.R
 \name{run_rxylib}
 \alias{run_rxylib}
-\title{Run Luminescence shiny apps}
+\title{Run rxylib shiny app}
 \usage{
 run_rxylib(...)
 }
@@ -10,9 +10,7 @@ run_rxylib(...)
 \item{...}{further arguments to pass to \code{\link{runApp}}}
 }
 \description{
-A wrapper for \code{\link{runApp}} to start interactive shiny apps for the R package Luminescence.
-}
-\details{
+A wrapper for \code{\link{runApp}} to start interactive shiny apps for the R package rxylib.
 The \code{app_RLum()} function is just a wrapper for \code{\link{runApp}}.
 Via the \code{...} argument further arguments can be directly passed to \code{\link{runApp}}.
 See \code{?shiny::runApp} for further details on valid arguments.
