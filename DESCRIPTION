@@ -14,8 +14,10 @@ License: GPL-3
 Depends:
     R (>= 3.3.2)
 Imports:
-    rxylib (>= 0.2.0),
-    shiny (>= 1.0.0)
+    shiny (>= 1.0.0),
+    rxylib
+Remotes:
+    RLum/rxylib
 URL: https://tzerk.github.io/RLumShiny/
 BugReports: https://github.com/tzerk/RLumShiny/issues
 RoxygenNote: 6.0.1
