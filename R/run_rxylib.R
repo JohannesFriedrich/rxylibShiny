@@ -10,6 +10,14 @@
 #' 
 #' @author Johannes Friedrich, University of Bayreuth (Germany)
 #' 
+#' @examples 
+#' 
+#' \dontrun{
+#' 
+#' run_rxylib()
+#' 
+#' }
+#' 
 #' @seealso [`runApp`]
 #' @md
 #' @export

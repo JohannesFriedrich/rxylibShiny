@@ -18,6 +18,6 @@ Imports:
     rxylib
 Remotes:
     RLum/rxylib
-URL: https://tzerk.github.io/RLumShiny/
-BugReports: https://github.com/tzerk/RLumShiny/issues
+URL: https://github.com/JohannesFriedrich/rxylibShiny
+BugReports: https://github.com/JohannesFriedrich/rxylibShiny/issues
 RoxygenNote: 6.0.1

@@ -6,6 +6,9 @@
 \usage{
 run_rxylib(...)
 }
+\arguments{
+\item{...}{further arguments to pass to \code{\link{runApp}}}
+}
 \description{
 A wrapper for \code{\link{runApp}} to start interactive shiny apps for the R package Luminescence.
 }
@@ -13,6 +16,15 @@ A wrapper for \code{\link{runApp}} to start interactive shiny apps for the R pac
 The \code{app_RLum()} function is just a wrapper for \code{\link{runApp}}.
 Via the \code{...} argument further arguments can be directly passed to \code{\link{runApp}}.
 See \code{?shiny::runApp} for further details on valid arguments.
+}
+\examples{
+
+\dontrun{
+
+run_rxylib()
+
+}
+
 }
 \seealso{
 \code{\link{runApp}}
