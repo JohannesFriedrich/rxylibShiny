@@ -1,0 +1,21 @@
+Package: rxylibShiny
+Type: Package
+Title: Shiny applications for the R Package 'rxylib'
+Version: 0.0.1
+Date: 2017-07-14
+Author: Johannes Friedrich [aut, cre],
+        rxylib Team [ctb]
+Authors@R: c(
+    person("Johannes", "Friedrich", role = c("aut", "cre"), email = "johannes.friedrich@uni-bayreuth.de")
+    )
+Maintainer: Johannes Friedrich <johannes.friedrich@uni-bayreuth.de>
+Description: A shiny application for the R package 'rxylib'.
+License: GPL-3
+Depends:
+    R (>= 3.3.2)
+Imports:
+    rxylib (>= 0.2.0),
+    shiny (>= 1.0.0)
+URL: https://tzerk.github.io/RLumShiny/
+BugReports: https://github.com/tzerk/RLumShiny/issues
+RoxygenNote: 6.0.1

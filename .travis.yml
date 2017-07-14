@@ -1,0 +1,11 @@
+language: r
+warnings_are_errors: true
+sudo: required
+
+##create notification
+notifications:
+  email:
+    recipients:
+      - johannes.friedrich@uni-bayreuth.de
+    on_success: change
+    on_failure: change
