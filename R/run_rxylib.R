@@ -6,6 +6,8 @@
 #' Via the `...` argument further arguments can be directly passed to [`runApp`]. 
 #' See `?shiny::runApp` for further details on valid arguments.
 #' 
+#' @param ... further arguments to pass to [`runApp`]
+#' 
 #' @author Johannes Friedrich, University of Bayreuth (Germany)
 #' 
 #' @seealso [`runApp`]
