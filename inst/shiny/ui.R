@@ -1,5 +1,10 @@
 shinyUI(
   navbarPage("rxylib Shiny",
+             
+             #################################
+             ## TAB 1: INPUT & PLOT
+             #################################
+             
              tabPanel("Data",
                       
                       # fluidRow(
@@ -9,8 +14,10 @@ shinyUI(
                         tags$hr(),
                         checkboxInput('dataset_meta_button', 'Show dataset meta data', TRUE),
                         checkboxInput('block_meta_button', 'Show block meta data', TRUE),
+                        checkboxInput('show_grid_input', 'Show grid', FALSE),
                         uiOutput("block_ui"),
-                        uiOutput("column_ui")
+                        uiOutput("column_ui"),
+                        downloadButton("downloadData", "Download")
                       )),
                       column(8, wellPanel(
                         h2("Plot"),
@@ -32,6 +39,37 @@ shinyUI(
                       # ) # end fluidRow
              ), # end Tab DATA
              
+             #################################
+             ## TAB 2: TRANSFORMATION
+             #################################
+             
+             tabPanel("Transform data",
+                      
+                      fluidRow(
+                        
+                        column(4, wellPanel(
+                          
+                          checkboxInput('execute_normalisation', 'Normalise', FALSE),
+                          checkboxInput('execute_inverse', 'Inverse', FALSE),
+                          checkboxInput('execute_logx', 'log x', FALSE),
+                          checkboxInput('execute_logy', 'log y', FALSE),
+                          
+                          checkboxInput('show_grid_transform', 'Show grid', FALSE)
+                          
+                        )),
+                        
+                        column(8, wellPanel(
+                          
+                          plotOutput("plot_transformation")
+                          
+                        ))
+                        ) ## end fluid row
+                      ), ## end tab TRANSFORMATION
+             
+             #################################
+             ## TAB 2: FITTING PANEL
+             #################################
+             
              tabPanel("Fitting",
                       
                       fluidRow(
@@ -42,20 +80,25 @@ shinyUI(
                                         "Linear Model" = "linear")),
                           uiOutput("model_formula"),
                           br(),
-                          uiOutput("coef_guess_ui")
+                          uiOutput("coef_guess_ui"),
+                          actionButton("fitButton", "Fit")
+                      )),
+                      column(8, wellPanel(
+                      plotOutput(
+                        "plot_fitting",
+                        dblclick = "plot_fitting_dblclick",
+                        brush = brushOpts(
+                          id = "plot_fitting_brush",
+                          resetOnNew = TRUE)
+                      )
                       ))
-                      # column(8, wellPanel(
-                      # plotOutput(
-                      #   # "plot_fitting",
-                      #   # dblclick = "plot_fitting_dblclick",
-                      #   # brush = brushOpts(
-                      #   #   id = "plot_brush",
-                      #   #   resetOnNew = TRUE)
-                      # )
-                      # ))
                       ) # end fluidRow
                       
              ), # end Tab FITTING
+             
+             #################################
+             ## TAB 3: ABOUT
+             #################################
              
              tabPanel("About",
                       h5("Authors"),

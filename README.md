@@ -24,12 +24,18 @@ rxylibShiny::run_rxylib()
 
 ## Related projects 
 
+* [xylib](https://github.com/wojdyr/xylib)
 * [rxylib](https://github.com/R-Lum/rxylib)
-* [RLumModel](https://github.com/R-Lum/RLumModel)
-* [Luminescence](https://github.com/R-Lum/Luminescence)
+* [fityk](http://fityk.nieto.pl/)
 
 ## Platform tests status 
 [![Build Status](https://travis-ci.org/JohannesFriedrich/rxylibShiny.svg?branch=master)](https://travis-ci.org/JohannesFriedrich/rxylibShiny)
+
+## To Do
+
+* Add download of converted data (with or without metadata)
+* Add transformations (~~invert~~, log, log-log, ...)
+* Add fitting functions
 
 ## License
 

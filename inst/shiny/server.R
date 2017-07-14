@@ -74,6 +74,18 @@ shinyServer(function(input, output) {
     }
   })
   
+  observeEvent(input$plot_fitting_dblclick, {
+    brush <- input$plot_fitting_brush
+    if (!is.null(brush)) {
+      ranges$x <- c(brush$xmin, brush$xmax)
+      ranges$y <- c(brush$ymin, brush$ymax)
+      
+    } else {
+      ranges$x <- NULL
+      ranges$y <- NULL
+    }
+  })
+  
   ##########################
   ## OUTPUT
   ##########################
@@ -127,18 +139,111 @@ shinyServer(function(input, output) {
 
   # plot output
   output$plot_fitting <- output$plot <- renderPlot({
-    if(!is.null(data()))
+    if(!is.null(data())){
+      
+      col_names <- colnames(data()$dataset[[blk_nr()]]$data_block)
+      x_lab <- col_names[x_axis()]
+      y_lab <- col_names[y_axis()]
+      
       plot(x = data()$dataset[[blk_nr()]]$data_block[,x_axis()],
            y = data()$dataset[[blk_nr()]]$data_block[,y_axis()],
            xlim = ranges$x,
            ylim = ranges$y,
-           xlab = "x [a.u.]",
-           ylab = "y [a.u.]")
+           xlab = x_lab,
+           ylab = y_lab
+           )
+      if(input$show_grid_input){grid()}
+    }
   })
-
+  
+  # output$downloadData <- downloadHandler(
+  #   filename = function() { paste(input$file, " ",Sys.Date(),".csv",sep="") },
+  #   content = function(file) {
+  #     
+  #     
+  #     
+  #     write.csv(myout()$dataframe1,file,row.names=F)
+  #   }
+  # )
+  
   #################################
-  ## TAB 2: FITTING PANEL
+  ## TAB 2: TRANSFORMATION
   #################################
+  
+  output$plot_transformation <- renderPlot({
+      
+      if(!is.null(data())){
+        
+        col_names <- colnames(data()$dataset[[blk_nr()]]$data_block)
+        x_lab <- col_names[x_axis()]
+        y_lab <- col_names[y_axis()]
+        y <- data()$dataset[[blk_nr()]]$data_block[,y_axis()]
+        
+        if(input$execute_normalisation){
+          y <- y/max(y) 
+        }
+        
+        if(input$execute_inverse){
+          y <- -y 
+        }
+        if(input$execute_logx & !input$execute_logy){
+          log = "x"
+        }
+        else if(!input$execute_logx & input$execute_logy){
+          log = "y"
+        }
+        else if(input$execute_logx & input$execute_logy){
+          log = "xy"  
+        } else {
+          log = ""
+        }
+        
+        plot(x = data()$dataset[[blk_nr()]]$data_block[,x_axis()],
+             y = y,
+             xlim = ranges$x,
+             ylim = ranges$y,
+             xlab = x_lab,
+             ylab = y_lab,
+             log = log
+        )
+        if(input$show_grid_transform){grid()}
+      }
+      
+    }) ## end renderPlot
+    
+  #################################
+  ## TAB 3: FITTING PANEL
+  #################################
+  
+  fit <- eventReactive(input$fitButton, {
+    # input$n
+ 
+  model_func <- switch(input$model_type,
+                       "exp_dec" = exp_dec_fit,
+                       "linear" = linear_fit)
+  
+  model_coefs <- switch(input$model_type,
+                        "linear" = list("a" = input$a, "y_0" = input$y_0, "Rd" = input$Rd),
+                        "exp_dec" = list("a" = input$a, "t" = input$t))
+  
+  linear_fit <- function(model_coefs, newx){
+    a <- model_coefs$a
+    y_0 <- model_coefs$y_0
+    out <- a * newx + y_0
+    return(out)
+  }
+  
+  # newx <- seq(from=min(dat$E), to=max(dat$E), length.out = 100)
+  
+  guess <- model_func(model_coefs, newx)
+  
+  fit_model <- function(mod_form, start, dat){
+    fit <- try(nls(mod_form, start=start, data=dat, 
+                   nls.control(minFactor=1/100000, maxiter=500)), 
+               silent=T)
+  }
+  
+  }) ## end eventReactive
   
   output$model_formula <- renderUI({
     if (is.null(input$model_type)) { return() }
