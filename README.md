@@ -29,7 +29,7 @@ rxylibShiny::run_rxylib()
 * [Luminescence](https://github.com/R-Lum/Luminescence)
 
 ## Platform tests status 
-[![Build Status](https://travis-ci.org/JohannesFriedrich/rxylibShiny)](https://travis-ci.org/JohannesFriedrich/rxylibShiny)
+[![Build Status](https://travis-ci.org/JohannesFriedrich/rxylibShiny.svg?branch=master)](https://travis-ci.org/JohannesFriedrich/rxylibShiny)
 
 ## License
 
