@@ -4,13 +4,30 @@
 
 ## Impressions
 
-![](img/screenshot.png)
+![](img/screenshot.jpg)
 
 ## Installation and usage
 
-The application can be either run on a local device or an external
-[Shiny Server](https://www.rstudio.com/products/shiny/shiny-server/).
+** Note: This shiny app will just work with the current development version of rxylib. 
+To install the latest development builds directly from GitHub, run:**
 
+```r
+if(!require("devtools"))
+  install.packages("devtools")
+devtools::install_github("R-Lum/rxylib@master")
+```
+
+The application can be run on a local with the following command:
+
+```r
+rxylibShiny::run_rxylib()
+```
+
+## Related projects 
+
+* [xylib](https://github.com/R-Lum/rxylib)
+* [RLumModel](https://github.com/R-Lum/RLumModel)
+* [Luminescence](https://github.com/R-Lum/Luminescence)
 
 ## License
 
