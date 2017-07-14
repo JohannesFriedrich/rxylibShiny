@@ -17,7 +17,7 @@ if(!require("devtools"))
 devtools::install_github("R-Lum/rxylib@master")
 ```
 
-The application can be run on a local with the following command:
+The application can be run on a local machine with the following command:
 
 ```r
 rxylibShiny::run_rxylib()
@@ -25,7 +25,7 @@ rxylibShiny::run_rxylib()
 
 ## Related projects 
 
-* [xylib](https://github.com/R-Lum/rxylib)
+* [rxylib](https://github.com/R-Lum/rxylib)
 * [RLumModel](https://github.com/R-Lum/RLumModel)
 * [Luminescence](https://github.com/R-Lum/Luminescence)
 
