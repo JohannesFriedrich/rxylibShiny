@@ -1,6 +1,9 @@
 language: r
+cache: packages
 warnings_are_errors: true
 sudo: required
+r_github_packages:
+  - RLum/rxylib@master
 
 ##create notification
 notifications:
