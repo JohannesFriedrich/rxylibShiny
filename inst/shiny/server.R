@@ -151,7 +151,6 @@ shinyServer(function(input, output) {
     ) ## end list
   })
   
-
   # plot output
   output$plot_fitting <- renderPlot({
     if(!is.null(data())){
@@ -171,11 +170,7 @@ shinyServer(function(input, output) {
     }
   })
     
-    
-    
-    
-    
-    output$plot <- renderPlot({
+  output$plot <- renderPlot({
     if(!is.null(data())){
       
       col_names <- colnames(data()$dataset[[blk_nr()]]$data_block)
@@ -193,15 +188,34 @@ shinyServer(function(input, output) {
     }
   })
   
-  # output$downloadData <- downloadHandler(
-  #   filename = function() { paste(input$file, " ",Sys.Date(),".csv",sep="") },
-  #   content = function(file) {
-  #     
-  #     
-  #     
-  #     write.csv(myout()$dataframe1,file,row.names=F)
-  #   }
-  # )
+  output$downloadData <- downloadHandler(
+    filename = function() { 
+      paste(input$file, "_",Sys.Date(),".txt",sep="") 
+      },
+    content = function(file) {
+
+      for(i in 1:length(data()$dataset)){
+        if(i ==1) {
+          write.table(data.frame("Exported by rxylibShiny", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE)
+          write.table(data.frame("# Metadata", ""), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+          write.table(data()$metadata, file, row.names = FALSE, quote = FALSE, append = TRUE)
+          write.table(data.frame("","\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          write.table(data.frame("#BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          write.table(data()$dataset[[i]]$data_block, file, row.names = FALSE, append = TRUE)
+          write.table(data.frame("\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+        } else {
+          write.table(data.frame("#BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          write.table(data()$dataset[[i]]$metadata_block, file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          write.table(data.frame("","\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          write.table(data()$dataset[[i]]$data_block, file, row.names = FALSE, append = TRUE, quote = FALSE)
+          write.table(data.frame("","\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          
+        }
+          
+      } ## end for loop
+    },
+    contentType = "text/plain"
+  )
   
   #################################
   ## TAB 2: TRANSFORMATION
@@ -219,17 +233,17 @@ shinyServer(function(input, output) {
         
         if(input$execute_normalisation_max){
           y <- y/max(y) 
-          ylab <- "Normalised"
+          y_lab <- "Normalised"
         }
         
         if(input$execute_normalisation_first){
           y <- y/y[1]
-          ylab <- "Normalised"
+          y_lab <- "Normalised"
         }
         
         if(input$execute_normalisation_last){
           y <- y/y[length(y)]
-          ylab <- "Normalised"
+          y_lab <- "Normalised"
         }
         
         

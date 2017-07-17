@@ -15,9 +15,9 @@ shinyUI(
                         checkboxInput('dataset_meta_button', 'Show dataset meta data', TRUE),
                         checkboxInput('block_meta_button', 'Show block meta data', TRUE),
                         checkboxInput('show_grid_input', 'Show grid', FALSE),
+                        downloadButton("downloadData", "Download"),
                         uiOutput("block_ui"),
-                        uiOutput("column_ui"),
-                        downloadButton("downloadData", "Download")
+                        uiOutput("column_ui")
                       )),
                       column(8, wellPanel(
                         h2("Plot"),
