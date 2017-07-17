@@ -245,15 +245,15 @@ shinyServer(function(input, output) {
         
         if(input$execute_wl2energy){
           y <-   y * x^2/(4.13566733e-015 * 299792458e+09)
-          # y <- ifelse(input$execute_normalisation, y/max(y), y)
           x <- 4.13566733e-015 * 299792458e+09 / x
           x_lab = "Energy [eV]"
           y_lab <- "Intensity [a.u.]"
         }
         
         if(input$execute_energy2wl){
-          y <-   (4.13566733e-015 * 299792458e+09)/(y * x^2)
-          x <-  x/(4.13566733e-015 * 299792458e+09)
+          
+          x <-  4.13566733e-015 * 299792458e+09/x
+          y <-   (y * 4.13566733e-015 * 299792458e+09)/(x^2)
           x_lab = "Wavelength [nm]"
           y_lab <- "Intensity [a.u.]"
         }
