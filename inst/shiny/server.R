@@ -217,30 +217,41 @@ shinyServer(function(input, output) {
         x <- data()$dataset[[blk_nr()]]$data_block[,x_axis()]
         y <- data()$dataset[[blk_nr()]]$data_block[,y_axis()]
         
-        if(input$execute_normalisation){
+        if(input$execute_normalisation_max){
           y <- y/max(y) 
-          # ranges$y_temp <- ranges$y_transformation
-          # ranges$y_transformation <- c(0,1)
-        } else {
-          # ranges$y_transformation <- ranges$y_temp 
+          ylab <- "Normalised"
         }
+        
+        if(input$execute_normalisation_first){
+          y <- y/y[1]
+          ylab <- "Normalised"
+        }
+        
+        if(input$execute_normalisation_last){
+          y <- y/y[length(y)]
+          ylab <- "Normalised"
+        }
+        
         
         if(input$execute_inverse){
           y <- -y 
-          # ranges$x <- NULL
-          # ranges$y <- NULL
         }
         
         if(input$execute_logx & !input$execute_logy){
-          log = "x"
+          log <- "x"
+          y <- y[which(x>0)]
+          x <- x[which(x>0)]
         }
         else if(!input$execute_logx & input$execute_logy){
-          log = "y"
+          log <- "y"
+          x <- x[which(y>0)]
+          y <- y[which(y>0)]
+
         }
         else if(input$execute_logx & input$execute_logy){
-          log = "xy"  
+          log <- "xy"  
         } else {
-          log = ""
+          log <- ""
         }
         
         if(input$execute_wl2energy){
@@ -256,6 +267,14 @@ shinyServer(function(input, output) {
           y <-   (y * 4.13566733e-015 * 299792458e+09)/(x^2)
           x_lab = "Wavelength [nm]"
           y_lab <- "Intensity [a.u.]"
+        }
+        
+        if(input$execute_cumsum){
+          y <- cumsum(y)
+        }
+        
+        if(input$execute_zeroy){
+          y <- vapply(y, FUN = function(Y) {max(0,Y)}, FUN.VALUE = 1)
         }
         
         plot(x = x,

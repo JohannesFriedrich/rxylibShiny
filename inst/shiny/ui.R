@@ -49,12 +49,16 @@ shinyUI(
                         
                         column(4, wellPanel(
                           h2("Transformations"),
-                          checkboxInput('execute_normalisation', 'Normalise', FALSE),
+                          checkboxInput('execute_normalisation_max', 'Normalise to maximum', FALSE),
+                          checkboxInput('execute_normalisation_first', 'Normalise to first data point', FALSE),
+                          checkboxInput('execute_normalisation_last', 'Normalise to last data point', FALSE),
                           checkboxInput('execute_inverse', 'Inverse', FALSE),
                           checkboxInput('execute_logx', 'log x', FALSE),
                           checkboxInput('execute_logy', 'log y', FALSE),
-                          checkboxInput('execute_wl2energy', ' Wavelength -> Energy', FALSE),
-                          checkboxInput('execute_energy2wl', 'Energy -> Wavelength', FALSE),
+                          checkboxInput('execute_wl2energy', ' Wavelength \U02192 Energy', FALSE),
+                          checkboxInput('execute_energy2wl', 'Energy \U02192 Wavelength', FALSE),
+                          checkboxInput('execute_cumsum', 'Cumulative sum', FALSE),
+                          checkboxInput('execute_zeroy', 'Zero negative y', FALSE),
                           
                           checkboxInput('show_grid_transform', 'Show grid', FALSE)
                           
