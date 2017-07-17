@@ -7,7 +7,7 @@ shinyUI(
              
              tabPanel("Data",
                       
-                      # fluidRow(
+                      fluidRow(
                       
                       column(4, wellPanel(
                         fileInput('file', 'Choose File'),
@@ -36,7 +36,7 @@ shinyUI(
                                     shiny::dataTableOutput("block_metadata"))
                         ) ##  end tabsetPanel
                       ))
-                      # ) # end fluidRow
+                      ) # end fluidRow
              ), # end Tab DATA
              
              #################################
@@ -48,26 +48,32 @@ shinyUI(
                       fluidRow(
                         
                         column(4, wellPanel(
-                          
+                          h2("Transformations"),
                           checkboxInput('execute_normalisation', 'Normalise', FALSE),
                           checkboxInput('execute_inverse', 'Inverse', FALSE),
                           checkboxInput('execute_logx', 'log x', FALSE),
                           checkboxInput('execute_logy', 'log y', FALSE),
+                          checkboxInput('execute_wl2energy', ' Wavelength -> Energy', FALSE),
+                          checkboxInput('execute_energy2wl', 'Energy -> Wavelength', FALSE),
                           
                           checkboxInput('show_grid_transform', 'Show grid', FALSE)
                           
                         )),
                         
                         column(8, wellPanel(
-                          
-                          plotOutput("plot_transformation")
+                          h2("Plot"),
+                          plotOutput("plot_transformation",
+                                     dblclick = "plot_transformation_dblclick",
+                                     brush = brushOpts(
+                                       id = "plot_transformation_brush",
+                                       resetOnNew = TRUE))
                           
                         ))
                         ) ## end fluid row
                       ), ## end tab TRANSFORMATION
              
              #################################
-             ## TAB 2: FITTING PANEL
+             ## TAB 3: FITTING PANEL
              #################################
              
              tabPanel("Fitting",

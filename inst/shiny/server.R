@@ -12,7 +12,10 @@ shinyServer(function(input, output) {
   ## CREATE REACTIVES
   ##########################
   
-  ranges <- reactiveValues(x = NULL, y = NULL)
+  ranges <- reactiveValues(x = NULL, y = NULL, 
+                           x_temp = NULL, y_temp = NULL,
+                           x_fitting = NULL, y_fitting = NULL, 
+                           x_transformation = NULL, y_transformation = NULL)
   
   # get input data
   data <- reactive({
@@ -21,7 +24,7 @@ shinyServer(function(input, output) {
 
     if (is.null(input_file)){
 
-      data <- NULL
+      return(NULL)
 
     } else {
       ext <- tools::file_ext(input_file$name)
@@ -29,7 +32,7 @@ shinyServer(function(input, output) {
       file.rename(input_file$datapath,
                 paste(input_file$datapath, ext, sep="."))
 
-      data <- rxylib::read_xyData(file = paste(input_file$datapath, ext, sep = "."))
+      return(rxylib::read_xyData(file = paste(input_file$datapath, ext, sep = ".")))
 
     }
 
@@ -77,12 +80,24 @@ shinyServer(function(input, output) {
   observeEvent(input$plot_fitting_dblclick, {
     brush <- input$plot_fitting_brush
     if (!is.null(brush)) {
-      ranges$x <- c(brush$xmin, brush$xmax)
-      ranges$y <- c(brush$ymin, brush$ymax)
+      ranges$x_fitting <- c(brush$xmin, brush$xmax)
+      ranges$y_fitting <- c(brush$ymin, brush$ymax)
       
     } else {
-      ranges$x <- NULL
-      ranges$y <- NULL
+      ranges$x_fiting <- NULL
+      ranges$y_fitting <- NULL
+    }
+  })
+  
+  observeEvent(input$plot_transformation_dblclick, {
+    brush <- input$plot_transformation_brush
+    if (!is.null(brush)) {
+      ranges$x_transformation  <- c(brush$xmin, brush$xmax)
+      ranges$y_transformation  <- c(brush$ymin, brush$ymax)
+      
+    } else {
+      ranges$x_transformation <- NULL
+      ranges$y_transformation <- NULL
     }
   })
   
@@ -138,7 +153,29 @@ shinyServer(function(input, output) {
   
 
   # plot output
-  output$plot_fitting <- output$plot <- renderPlot({
+  output$plot_fitting <- renderPlot({
+    if(!is.null(data())){
+      
+      col_names <- colnames(data()$dataset[[blk_nr()]]$data_block)
+      x_lab <- col_names[x_axis()]
+      y_lab <- col_names[y_axis()]
+      
+      plot(x = data()$dataset[[blk_nr()]]$data_block[,x_axis()],
+           y = data()$dataset[[blk_nr()]]$data_block[,y_axis()],
+           xlim = ranges$x_fitting,
+           ylim = ranges$y_fitting,
+           xlab = x_lab,
+           ylab = y_lab
+      )
+      if(input$show_grid_input){grid()}
+    }
+  })
+    
+    
+    
+    
+    
+    output$plot <- renderPlot({
     if(!is.null(data())){
       
       col_names <- colnames(data()$dataset[[blk_nr()]]$data_block)
@@ -177,15 +214,23 @@ shinyServer(function(input, output) {
         col_names <- colnames(data()$dataset[[blk_nr()]]$data_block)
         x_lab <- col_names[x_axis()]
         y_lab <- col_names[y_axis()]
+        x <- data()$dataset[[blk_nr()]]$data_block[,x_axis()]
         y <- data()$dataset[[blk_nr()]]$data_block[,y_axis()]
         
         if(input$execute_normalisation){
           y <- y/max(y) 
+          # ranges$y_temp <- ranges$y_transformation
+          # ranges$y_transformation <- c(0,1)
+        } else {
+          # ranges$y_transformation <- ranges$y_temp 
         }
         
         if(input$execute_inverse){
           y <- -y 
+          # ranges$x <- NULL
+          # ranges$y <- NULL
         }
+        
         if(input$execute_logx & !input$execute_logy){
           log = "x"
         }
@@ -198,10 +243,25 @@ shinyServer(function(input, output) {
           log = ""
         }
         
-        plot(x = data()$dataset[[blk_nr()]]$data_block[,x_axis()],
+        if(input$execute_wl2energy){
+          y <-   y * x^2/(4.13566733e-015 * 299792458e+09)
+          # y <- ifelse(input$execute_normalisation, y/max(y), y)
+          x <- 4.13566733e-015 * 299792458e+09 / x
+          x_lab = "Energy [eV]"
+          y_lab <- "Intensity [a.u.]"
+        }
+        
+        if(input$execute_energy2wl){
+          y <-   (4.13566733e-015 * 299792458e+09)/(y * x^2)
+          x <-  x/(4.13566733e-015 * 299792458e+09)
+          x_lab = "Wavelength [nm]"
+          y_lab <- "Intensity [a.u.]"
+        }
+        
+        plot(x = x,
              y = y,
-             xlim = ranges$x,
-             ylim = ranges$y,
+             xlim = ranges$x_transformation,
+             ylim = ranges$y_transformation,
              xlab = x_lab,
              ylab = y_lab,
              log = log
@@ -233,7 +293,7 @@ shinyServer(function(input, output) {
     return(out)
   }
   
-  # newx <- seq(from=min(dat$E), to=max(dat$E), length.out = 100)
+  newx <- seq(from=min(ranges$x), to=max(ranges$x), length.out = 100)
   
   guess <- model_func(model_coefs, newx)
   

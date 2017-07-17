@@ -8,7 +8,7 @@
 
 ## Installation and usage
 
-** Note: This shiny app will just work with the current development version of rxylib.  To install the latest development builds directly from GitHub, run:**
+** Note**: This shiny app will just work with the current development version of rxylib.  To install the latest development builds directly from GitHub, run:
 
 ```r
 if(!require("devtools"))
@@ -34,8 +34,8 @@ rxylibShiny::run_rxylib()
 ## To Do
 
 * Add download of converted data (with or without metadata)
-* Add transformations (~~invert~~, log, log-log, ...)
-* Add fitting functions
+* Add transformations (~~invert, log, log-log, wavelength -> energy (and vice versa)~~,...)
+* Add fitting function
 
 ## License
 
