@@ -58,10 +58,9 @@ shinyUI(
                           checkboxInput('execute_wl2energy', ' Wavelength \U02192 Energy', FALSE),
                           checkboxInput('execute_energy2wl', 'Energy \U02192 Wavelength', FALSE),
                           checkboxInput('execute_cumsum', 'Cumulative sum', FALSE),
-                          checkboxInput('execute_zeroy', 'Zero negative y', FALSE),
+                          checkboxInput('execute_zeroy', 'Zero negative y', FALSE)
                           
-                          checkboxInput('show_grid_transform', 'Show grid', FALSE)
-                          
+
                         )),
                         
                         column(8, wellPanel(
@@ -87,11 +86,13 @@ shinyUI(
                         column(4, wellPanel(
                           selectInput("model_type", "Select a model", 
                                       c("Exponential decay" = "exp_dec", 
-                                        "Linear Model" = "linear")),
+                                        "Linear Model" = "linear",
+                                        "Double exponential decay"  = "double_exp_dec"),selected = "linear"),
                           uiOutput("model_formula"),
                           br(),
                           uiOutput("coef_guess_ui"),
-                          actionButton("fitButton", "Fit")
+                          actionButton("fitButton", "Fit"),
+                          htmlOutput("test")
                       )),
                       column(8, wellPanel(
                       plotOutput(
@@ -100,7 +101,9 @@ shinyUI(
                         brush = brushOpts(
                           id = "plot_fitting_brush",
                           resetOnNew = TRUE)
-                      )
+                      ),
+                      helpText("Choose zoom area with mouse and double click for zoom. Double klick again for default view."),
+                      htmlOutput("fit_print")
                       ))
                       ) # end fluidRow
                       

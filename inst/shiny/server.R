@@ -17,6 +17,12 @@ shinyServer(function(input, output) {
                            x_fitting = NULL, y_fitting = NULL, 
                            x_transformation = NULL, y_transformation = NULL)
   
+  plot <- reactiveValues(plot = NULL, 
+                         fitting = NULL, 
+                         guess = NULL,
+                         transformation = NULL,
+                         df = NULL)
+  
   # get input data
   data <- reactive({
 
@@ -151,25 +157,6 @@ shinyServer(function(input, output) {
     ) ## end list
   })
   
-  # plot output
-  output$plot_fitting <- renderPlot({
-    if(!is.null(data())){
-      
-      col_names <- colnames(data()$dataset[[blk_nr()]]$data_block)
-      x_lab <- col_names[x_axis()]
-      y_lab <- col_names[y_axis()]
-      
-      plot(x = data()$dataset[[blk_nr()]]$data_block[,x_axis()],
-           y = data()$dataset[[blk_nr()]]$data_block[,y_axis()],
-           xlim = ranges$x_fitting,
-           ylim = ranges$y_fitting,
-           xlab = x_lab,
-           ylab = y_lab
-      )
-      if(input$show_grid_input){grid()}
-    }
-  })
-    
   output$plot <- renderPlot({
     if(!is.null(data())){
       
@@ -177,14 +164,29 @@ shinyServer(function(input, output) {
       x_lab <- col_names[x_axis()]
       y_lab <- col_names[y_axis()]
       
-      plot(x = data()$dataset[[blk_nr()]]$data_block[,x_axis()],
-           y = data()$dataset[[blk_nr()]]$data_block[,y_axis()],
-           xlim = ranges$x,
-           ylim = ranges$y,
-           xlab = x_lab,
-           ylab = y_lab
-           )
-      if(input$show_grid_input){grid()}
+      x <- data()$dataset[[blk_nr()]]$data_block[,x_axis()]
+      y <- data()$dataset[[blk_nr()]]$data_block[,y_axis()]
+      xlim <- ranges$x
+      ylim <- ranges$y
+
+      df <- data.frame(x = x, y = y)
+      gg_plot <- ggplot(data = df , aes(x = x, y = y)) +
+        geom_point() +
+        xlab(x_lab) + 
+        ylab(y_lab) 
+      
+      if(!is.null(ranges$x)){
+        
+        gg_plot <- gg_plot + xlim(ranges$x)
+      }
+      if(!is.null(ranges$y)){
+        
+        gg_plot <- gg_plot + ylim(ranges$y)
+      }
+      
+      plot$plot <- gg_plot
+      
+      return(gg_plot)
     }
   })
   
@@ -215,13 +217,13 @@ shinyServer(function(input, output) {
       } ## end for loop
     },
     contentType = "text/plain"
-  )
+  ) ## end downloadHandler
   
   #################################
   ## TAB 2: TRANSFORMATION
   #################################
   
-  output$plot_transformation <- renderPlot({
+  output$plot_transformation <- output$plot_fitting <- renderPlot({
       
       if(!is.null(data())){
         
@@ -251,27 +253,10 @@ shinyServer(function(input, output) {
           y <- -y 
         }
         
-        if(input$execute_logx & !input$execute_logy){
-          log <- "x"
-          y <- y[which(x>0)]
-          x <- x[which(x>0)]
-        }
-        else if(!input$execute_logx & input$execute_logy){
-          log <- "y"
-          x <- x[which(y>0)]
-          y <- y[which(y>0)]
-
-        }
-        else if(input$execute_logx & input$execute_logy){
-          log <- "xy"  
-        } else {
-          log <- ""
-        }
-        
         if(input$execute_wl2energy){
           y <-   y * x^2/(4.13566733e-015 * 299792458e+09)
           x <- 4.13566733e-015 * 299792458e+09 / x
-          x_lab = "Energy [eV]"
+          x_lab <- "Energy [eV]"
           y_lab <- "Intensity [a.u.]"
         }
         
@@ -279,7 +264,7 @@ shinyServer(function(input, output) {
           
           x <-  4.13566733e-015 * 299792458e+09/x
           y <-   (y * 4.13566733e-015 * 299792458e+09)/(x^2)
-          x_lab = "Wavelength [nm]"
+          x_lab <- "Wavelength [nm]"
           y_lab <- "Intensity [a.u.]"
         }
         
@@ -291,60 +276,151 @@ shinyServer(function(input, output) {
           y <- vapply(y, FUN = function(Y) {max(0,Y)}, FUN.VALUE = 1)
         }
         
-        plot(x = x,
-             y = y,
-             xlim = ranges$x_transformation,
-             ylim = ranges$y_transformation,
-             xlab = x_lab,
-             ylab = y_lab,
-             log = log
-        )
-        if(input$show_grid_transform){grid()}
+        ## basic plot
+        df <- data.frame(x = x, y = y)
+        
+        plot$df <- df
+        gg_transformation <- ggplot(data = df , aes(x = x, y = y)) +
+          geom_point() +
+          xlab(x_lab) + 
+          ylab(y_lab) 
+        
+        ## check if logarithmic axis
+        if(input$execute_logx & !input$execute_logy){
+          gg_transformation <- gg_transformation + scale_x_log10()
+        }
+        else if(!input$execute_logx & input$execute_logy){
+          gg_transformation <- gg_transformation + scale_y_log10()
+        }
+        else if(input$execute_logx & input$execute_logy){
+          gg_transformation <- gg_transformation + scale_x_log10() + scale_y_log10()
+        }
+        
+        if(!is.null(ranges$x_transformation)){
+          
+          gg_transformation <- gg_transformation + xlim(ranges$x_transformation)
+        }
+        if(!is.null(ranges$y_transformation)){
+          
+          gg_transformation <- gg_transformation + ylim(ranges$y_transformation)
+        }
+        
+        plot$transformation <- gg_transformation
+        
+        return(gg_transformation)
+
       }
       
     }) ## end renderPlot
-    
+
   #################################
   ## TAB 3: FITTING PANEL
   #################################
   
-  fit <- eventReactive(input$fitButton, {
-    # input$n
+    linear_fit <- function(model_coefs, newx){
+      a <- model_coefs$a
+      y_0 <- model_coefs$y_0
+      out <- a * newx + y_0
+      return(out)
+    }
+    
+    exp_dec_fit <- function(model_coefs, newx){
+      a <- model_coefs$a
+      t <- model_coefs$t
+      out <- a * exp(-newx/t)
+      return(out)
+    }
+    
+    double_exp_dec_fit <- function(model_coefs, newx){
+      a <- model_coefs$a
+      t <- model_coefs$t
+      out <- a * (1 - exp(-newx/t)) + exp(-newx/t)
+      return(out)
+    }
+    
  
-  model_func <- switch(input$model_type,
-                       "exp_dec" = exp_dec_fit,
-                       "linear" = linear_fit)
-  
-  model_coefs <- switch(input$model_type,
-                        "linear" = list("a" = input$a, "y_0" = input$y_0, "Rd" = input$Rd),
-                        "exp_dec" = list("a" = input$a, "t" = input$t))
-  
-  linear_fit <- function(model_coefs, newx){
-    a <- model_coefs$a
-    y_0 <- model_coefs$y_0
-    out <- a * newx + y_0
-    return(out)
-  }
-  
-  newx <- seq(from=min(ranges$x), to=max(ranges$x), length.out = 100)
-  
-  guess <- model_func(model_coefs, newx)
-  
-  fit_model <- function(mod_form, start, dat){
-    fit <- try(nls(mod_form, start=start, data=dat, 
-                   nls.control(minFactor=1/100000, maxiter=500)), 
-               silent=T)
-  }
-  
-  }) ## end eventReactive
-  
+    fit_model <- function(mod_form, start, dat){
+      fit <- try(nls(mod_form, start=start, data=dat, 
+                     nls.control(minFactor=1/100000, maxiter=500)), 
+                 silent=T)
+    }
+
+    
+    ## plot output fitting
+    output$plot_fitting <- renderPlot({
+    
+      model_func <- switch(input$model_type,
+                           "linear" = linear_fit,
+                           "exp_dec" = exp_dec_fit,
+                           "double_exp_dec" = double_exp_dec_fit)
+
+    
+      model_coefs <- switch(input$model_type,
+                            "linear" = list("a" = input$a, "y_0" = input$y_0),
+                            "exp_dec" = list("a" = input$a, "t" = input$t),
+                            "double_exp_dec" = list("a" = input$a, "t" = input$t))
+
+
+      if(is.null(ranges$x_fitting)){
+        ranges$x_fitting <- c(min(data()$dataset[[blk_nr()]]$data_block[,x_axis()]),
+                      max(data()$dataset[[blk_nr()]]$data_block[,x_axis()]))
+      }
+      
+      newx <- seq(from=min(ranges$x_fitting), to=max(ranges$x_fitting), length.out = 100)
+
+      guess <- model_func(model_coefs, newx) 
+      
+      ## save fitting results
+
+      if(input$fitButton){
+        mod_form <- switch(input$model_type,
+                           "linear" = formula(y~a*x+y_0),
+                           "exp_dec" = formula(y~a*exp(-x/t)),
+                           "double_exp_dec" = formula(y ~ a*(1-exp(-x/t)) + exp(-x/t)))
+        
+        fit <- fit_model(mod_form, start=model_coefs, dat = plot$df)
+        optim_coefs <- as.list(coefficients(fit))
+        mod_pred <- model_func(optim_coefs, newx)
+        outtab <- t(summary(fit)$coefficients[,1:2])
+        output$fit_print <- renderTable(outtab)
+        
+        
+      }
+      
+      if(length(newx == guess)){
+        df_guess <- data.frame(x = newx, y = guess)
+        plot$guess <- geom_line(data = df_guess, aes(x,y), colour = "red")
+        
+        if(input$fitButton){
+          
+          plot$fit <- geom_line(data = data.frame(x = plot$df$x, y = fitted(fit)), aes(x,y), colour = "green")
+          
+          if(is.null(plot$transformation)){
+            return(plot$plot + plot$guess +plot$fit)
+          } else {
+            return(plot$transformation + plot$guess + plot$fit)
+          }
+          
+        } else {
+          if(is.null(plot$transformation)){
+            return(plot$plot + plot$guess)
+          } else {
+            return(plot$transformation + plot$guess)
+        }
+        }
+      }
+    
+    })
+
+
   output$model_formula <- renderUI({
     if (is.null(input$model_type)) { return() }
     # Depending on input$model_type, we'll generate a different
     # UI component and send it to the client.
     switch(input$model_type,
            "linear" = withMathJax(helpText("$$y = a \\cdot x + y_0$$")),
-           "exp_dec" = withMathJax(helpText("$$y = a \\cdot \\exp\\left(-\\frac{x}{t}\\right)$$"))
+           "exp_dec" = withMathJax(helpText("$$y = a \\cdot \\exp\\left(-\\frac{x}{t}\\right)$$")),
+           "double_exp_dec" = withMathJax(helpText("$$y = a \\cdot \\left(1 - \\exp\\left(-\\frac{x}{t}\\right)\\right)+\\exp\\left(-\\frac{x}{t}\\right)$$"))
     )
   })
   
@@ -353,10 +429,12 @@ shinyServer(function(input, output) {
     # Depending on input$model_type, we'll generate a different
     # UI component and send it to the client.
     switch(input$model_type,
-           "linear" = list(sliderInput("a", "a:", min = 0, max = 10, value = 1, step = 0.01),
-                           sliderInput("y_0", withMathJax(helpText("$$y_0$$")), min = -50, max = 0, value = 0)),
-           "exp_dec" = list(sliderInput("a", "a:", min = 0, max = 10, value = 1, step = 0.01),
-                         sliderInput("t", "t:", min = 0, max = 200, value = 100))
+           "linear" = list(numericInput("a", "a:", value = 1),
+                           numericInput("y_0", withMathJax(helpText("$$y_0$$")), value = 0)),
+           "exp_dec" = list(numericInput("a", "a:", value = 1),
+                            numericInput("t", "t:", value = 100)),
+           "double_exp_dec" = list(numericInput("a", "a:", value = 1),
+                            numericInput("t", "t:", value = 100))
     )
   })
 

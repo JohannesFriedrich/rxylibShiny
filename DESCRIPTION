@@ -15,7 +15,8 @@ Depends:
     R (>= 3.3.2)
 Imports:
     shiny (>= 1.0.0),
-    rxylib
+    rxylib,
+    ggplot2 (>= 2.2.1)
 Remotes:
     RLum/rxylib
 URL: https://github.com/JohannesFriedrich/rxylibShiny
