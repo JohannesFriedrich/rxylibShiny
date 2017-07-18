@@ -8,7 +8,7 @@
 
 ## Installation and usage
 
-** Note** : This shiny app will just work with the current development version of rxylib.  To install the latest development builds directly from GitHub, run:
+**Note** : This shiny app will just work with the current development version of rxylib.  To install the latest development builds directly from GitHub, run:
 
 ```r
 if(!require("devtools"))
