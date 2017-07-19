@@ -5,6 +5,7 @@
 ## Impressions
 
 ![](img/screenshot.jpg)
+![](img/screenshot2.jpg)
 
 ## Installation and usage
 
@@ -33,7 +34,7 @@ rxylibShiny::run_rxylib()
 
 ## To Do
 
-* Add download of converted data with decision between with or without metadata
+* ~~Add download of converted data with decision between with or without metadata ~~
 * Add transformations (~~invert, log, log-log, wavelength -> energy (and vice versa)~~,...)
 * Add fitting function
 
