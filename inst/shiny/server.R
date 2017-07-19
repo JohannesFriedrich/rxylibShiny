@@ -211,11 +211,19 @@ shinyServer(function(input, output) {
           write.table(data.frame("# Metadata", ""), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
           write.table(data()$metadata, file, row.names = FALSE, quote = FALSE, append = TRUE)
           write.table(data.frame("","\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
-          write.table(data.frame("#BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          if(is.null(names(data()$dataset)) || names(data()$dataset) == ""){
+            write.table(data.frame("#BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          } else {
+            write.table(data.frame(names(data()$dataset)[i], ""), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          }
           write.table(data()$dataset[[i]]$data_block, file, row.names = FALSE, append = TRUE)
           write.table(data.frame("\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
         } else {
-          write.table(data.frame("#BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          if(is.null(names(data()$dataset)) || names(data()$dataset) == ""){
+            write.table(data.frame("#BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          } else {
+            write.table(data.frame(names(data()$dataset)[i], ""), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          }
           write.table(data()$dataset[[i]]$metadata_block, file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
           write.table(data.frame("","\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
           write.table(data()$dataset[[i]]$data_block, file, row.names = FALSE, append = TRUE, quote = FALSE)
