@@ -199,23 +199,27 @@ shinyServer(function(input, output) {
     }
   })
   
-  output$downloadData <- downloadHandler(
+  output$download_Data <- downloadHandler(
     filename = function() { 
-      paste(input$file, "_",Sys.Date(),".txt",sep="") 
+      paste(input$file, "_", Sys.Date(), ".txt", sep="") 
       },
     content = function(file) {
 
       for(i in 1:length(data()$dataset)){
         if(i ==1) {
           write.table(data.frame("Exported by rxylibShiny", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE)
-          write.table(data.frame("# Metadata", ""), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
-          write.table(data()$metadata, file, row.names = FALSE, quote = FALSE, append = TRUE)
-          write.table(data.frame("","\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          if(input$download_Meta){
+            write.table(data.frame("# Metadata", ""), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+            write.table(data()$metadata, file, row.names = FALSE, quote = FALSE, append = TRUE)
+            write.table(data.frame("","\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          }
+          
           if(is.null(names(data()$dataset)) || names(data()$dataset) == ""){
             write.table(data.frame("#BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
           } else {
             write.table(data.frame(names(data()$dataset)[i], ""), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
           }
+          
           write.table(data()$dataset[[i]]$data_block, file, row.names = FALSE, append = TRUE)
           write.table(data.frame("\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
         } else {
@@ -224,8 +228,10 @@ shinyServer(function(input, output) {
           } else {
             write.table(data.frame(names(data()$dataset)[i], ""), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
           }
-          write.table(data()$dataset[[i]]$metadata_block, file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
-          write.table(data.frame("","\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          if(input$download_Meta){
+            write.table(data()$dataset[[i]]$metadata_block, file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+            write.table(data.frame("","\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          }
           write.table(data()$dataset[[i]]$data_block, file, row.names = FALSE, append = TRUE, quote = FALSE)
           write.table(data.frame("","\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
           
