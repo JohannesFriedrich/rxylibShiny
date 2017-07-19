@@ -2,9 +2,18 @@
 
 'rxylib Shiny' is a [Shiny](http://shiny.rstudio.com) app providing a graphical user interface for the **R** package ['rxylib'](https://CRAN.R-project.org/package=rxylib). The app allows visualising x-y data from different file formats. For a complete overview see the ['rxylib'](https://CRAN.R-project.org/package=rxylib) manual.
 
+It is possible to load different file formats and see the x-y plot. Another feature is the transformation of data, e.g. translating wavelength spectra into energy sepctra or normalisations, ...
+
+Until now the plot and transformation panel is fully supported. This is not the case for the fitting feature. This will be extended in the future.
+
 ## Impressions
 
+### Data panel:
+
 ![](img/screenshot.jpg)
+
+### Transformation panel:
+
 ![](img/screenshot2.jpg)
 
 ## Installation and usage
@@ -34,7 +43,7 @@ rxylibShiny::run_rxylib()
 
 ## To Do
 
-* ~~Add download of converted data with decision between with or without metadata ~~
+* ~~Add download of converted data with decision between with or without metadata~~
 * Add transformations (~~invert, log, log-log, wavelength -> energy (and vice versa)~~,...)
 * Add fitting function
 
