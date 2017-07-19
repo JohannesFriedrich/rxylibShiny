@@ -23,6 +23,9 @@ shinyServer(function(input, output) {
                          transformation = NULL,
                          df = NULL)
   
+  df_reac <- reactiveValues(
+    df_transformation = NULL)
+  
   # get input data
   data <- reactive({
 
@@ -66,7 +69,7 @@ shinyServer(function(input, output) {
     if(is.null(input$blocks))
       return(1)
     else
-      return(as.numeric(input$blocks))
+      return(input$blocks)
 
   })
   
@@ -134,10 +137,16 @@ shinyServer(function(input, output) {
   ## create dropdown list with n-elements (n = number of blocks)
   output$block_ui <-   renderUI({
     if (is.null(data())) { return() }
+    
+    if(is.null(names(data()$dataset)) || names(data()$dataset) == ""){
+      blk_name <- 1:length(data()$dataset)
+    } else {
+      blk_name <- names(data()$dataset)
+    }
 
     selectInput("blocks",
                 "Blocks:",
-                choices = 1:length(data()$dataset)
+                choices = blk_name
     )
   })
   
@@ -279,7 +288,8 @@ shinyServer(function(input, output) {
         ## basic plot
         df <- data.frame(x = x, y = y)
         
-        plot$df <- df
+        df_reac$df_transformation <- df
+        
         gg_transformation <- ggplot(data = df , aes(x = x, y = y)) +
           geom_point() +
           xlab(x_lab) + 
@@ -340,8 +350,8 @@ shinyServer(function(input, output) {
     
  
     fit_model <- function(mod_form, start, dat){
-      fit <- try(nls(mod_form, start=start, data=dat, 
-                     nls.control(minFactor=1/100000, maxiter=500)), 
+      fit <- try(minpack.lm::nlsLM(formula = mod_form, data=dat, start=start,
+                     control = list(minFactor=1/100000, maxiter=500)), 
                  silent=T)
     }
 
@@ -378,14 +388,19 @@ shinyServer(function(input, output) {
                            "exp_dec" = formula(y~a*exp(-x/t)),
                            "double_exp_dec" = formula(y ~ a*(1-exp(-x/t)) + exp(-x/t)))
         
-        fit <- fit_model(mod_form, start=model_coefs, dat = plot$df)
-        optim_coefs <- as.list(coefficients(fit))
-        mod_pred <- model_func(optim_coefs, newx)
-        outtab <- t(summary(fit)$coefficients[,1:2])
-        output$fit_print <- renderTable(outtab)
-        
-        
-      }
+        fit <- fit_model(mod_form, start=model_coefs, dat = df_reac$df_transformation)
+        if(inherits(fit, "try-error")){ 
+          outmsg <- paste0("Sorry, but the fit failed.<br>", 
+                           "The error was: <code>", attr(fit, "condition")$message, "</code><br>")
+          output$fit_print_caption <- renderText("")
+          output$fit_print <- renderText(outmsg)
+        } else {
+          optim_coefs <- as.list(coefficients(fit))
+          mod_pred <- model_func(optim_coefs, newx)
+          outtab <- t(summary(fit)$coefficients[,1:2])
+          output$fit_print <- renderTable(outtab)
+        }
+      } ## end if fitButton
       
       if(length(newx == guess)){
         df_guess <- data.frame(x = newx, y = guess)
@@ -393,10 +408,10 @@ shinyServer(function(input, output) {
         
         if(input$fitButton){
           
-          plot$fit <- geom_line(data = data.frame(x = plot$df$x, y = fitted(fit)), aes(x,y), colour = "green")
+          plot$fit <- geom_line(data = data.frame(x = df_reac$df_transformation$x, y = fitted(fit)), aes(x,y), colour = "green")
           
           if(is.null(plot$transformation)){
-            return(plot$plot + plot$guess +plot$fit)
+            return(plot$plot + plot$guess + plot$fit)
           } else {
             return(plot$transformation + plot$guess + plot$fit)
           }
