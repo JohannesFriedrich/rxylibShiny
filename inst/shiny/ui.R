@@ -14,7 +14,6 @@ shinyUI(
                         tags$hr(),
                         checkboxInput('dataset_meta_button', 'Show dataset meta data', TRUE),
                         checkboxInput('block_meta_button', 'Show block meta data', TRUE),
-                        checkboxInput('show_grid_input', 'Show grid', FALSE),
                         downloadButton("download_Data", "Download"),
                         checkboxInput("download_Meta", "Add meta data to download", FALSE),
                         uiOutput("block_ui"),
@@ -84,7 +83,7 @@ shinyUI(
                       
                       fluidRow(
                         
-                        column(4, wellPanel(
+                        column(5, wellPanel(
                           selectInput("model_type", "Select a model", 
                                       c("Exponential decay" = "exp_dec", 
                                         "Linear Model" = "linear",
@@ -92,10 +91,11 @@ shinyUI(
                           uiOutput("model_formula"),
                           br(),
                           uiOutput("coef_guess_ui"),
+                          checkboxInput("seeGuess", "See guess"),
                           actionButton("fitButton", "Fit"),
                           htmlOutput("test")
                       )),
-                      column(8, wellPanel(
+                      column(7, wellPanel(
                       plotOutput(
                         "plot_fitting",
                         dblclick = "plot_fitting_dblclick",

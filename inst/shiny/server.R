@@ -15,12 +15,15 @@ shinyServer(function(input, output) {
   ranges <- reactiveValues(x = NULL, y = NULL, 
                            x_temp = NULL, y_temp = NULL,
                            x_fitting = NULL, y_fitting = NULL, 
-                           x_transformation = NULL, y_transformation = NULL)
+                           x_transformation = NULL, y_transformation = NULL,
+                           fit = NULL)
   
   plot <- reactiveValues(plot = NULL, 
                          fitting = NULL, 
                          guess = NULL,
                          transformation = NULL,
+                         newx = NULL, 
+                         fit = NULL,
                          df = NULL)
   
   df_reac <- reactiveValues(
@@ -152,7 +155,7 @@ shinyServer(function(input, output) {
   
   #create dropdown list with n-elements (n = number of columns in one block)
   output$column_ui <-   renderUI({
-    if (is.null(data())) { return() }
+    if (is.null(data()) || is.null(blk_nr())) { return() }
 
     list(
       selectInput("x",
@@ -302,6 +305,7 @@ shinyServer(function(input, output) {
         ## basic plot
         df <- data.frame(x = x, y = y)
         
+        ## save as reactive value for fitting panel
         df_reac$df_transformation <- df
         
         gg_transformation <- ggplot(data = df , aes(x = x, y = y)) +
@@ -361,29 +365,32 @@ shinyServer(function(input, output) {
       out <- a * (1 - exp(-newx/t)) + exp(-newx/t)
       return(out)
     }
-    
  
     fit_model <- function(mod_form, start, dat){
       fit <- try(minpack.lm::nlsLM(formula = mod_form, data=dat, start=start,
                      control = list(minFactor=1/100000, maxiter=500)), 
                  silent=T)
     }
-
     
     ## plot output fitting
-    output$plot_fitting <- renderPlot({
-    
-      model_func <- switch(input$model_type,
+    model_func <- reactive({
+     func <- switch(input$model_type,
                            "linear" = linear_fit,
                            "exp_dec" = exp_dec_fit,
                            "double_exp_dec" = double_exp_dec_fit)
+     
+     return(list(func = func))
+    })
 
     
-      model_coefs <- switch(input$model_type,
+    model_coefs <- reactive({
+        switch(input$model_type,
                             "linear" = list("a" = input$a, "y_0" = input$y_0),
                             "exp_dec" = list("a" = input$a, "t" = input$t),
                             "double_exp_dec" = list("a" = input$a, "t" = input$t))
-
+    })
+    
+    guess <- reactive({
 
       if(is.null(ranges$x_fitting)){
         ranges$x_fitting <- c(min(data()$dataset[[blk_nr()]]$data_block[,x_axis()]),
@@ -391,56 +398,77 @@ shinyServer(function(input, output) {
       }
       
       newx <- seq(from=min(ranges$x_fitting), to=max(ranges$x_fitting), length.out = 100)
-
-      guess <- model_func(model_coefs, newx) 
+      plot$newx <- newx
       
-      ## save fitting results
-
-      if(input$fitButton){
-        mod_form <- switch(input$model_type,
+      guess <- model_func()$func(model_coefs(), plot$newx)
+      
+    })
+      
+    observeEvent(input$fitButton, {
+      mod_form <- switch(input$model_type,
                            "linear" = formula(y~a*x+y_0),
                            "exp_dec" = formula(y~a*exp(-x/t)),
                            "double_exp_dec" = formula(y ~ a*(1-exp(-x/t)) + exp(-x/t)))
         
-        fit <- fit_model(mod_form, start=model_coefs, dat = df_reac$df_transformation)
-        if(inherits(fit, "try-error")){ 
-          outmsg <- paste0("Sorry, but the fit failed.<br>", 
-                           "The error was: <code>", attr(fit, "condition")$message, "</code><br>")
-          output$fit_print_caption <- renderText("")
-          output$fit_print <- renderText(outmsg)
-        } else {
-          optim_coefs <- as.list(coefficients(fit))
-          mod_pred <- model_func(optim_coefs, newx)
-          outtab <- t(summary(fit)$coefficients[,1:2])
-          output$fit_print <- renderTable(outtab)
-        }
-      } ## end if fitButton
-      
-      if(length(newx == guess)){
-        df_guess <- data.frame(x = newx, y = guess)
-        plot$guess <- geom_line(data = df_guess, aes(x,y), colour = "red")
         
-        if(input$fitButton){
+        
+      fit <- fit_model(mod_form, start=model_coefs(), dat = df_reac$df_transformation)
+      plot$fit <- fit
+        
+      if(inherits(fit, "try-error")){ 
+        outmsg <- paste0("The fit failed.<br>", 
+                           "The error was: <code>", attr(fit, "condition")$message, "</code><br>")
+        output$fit_print_caption <- renderText("")
+        output$fit_print <- renderText(outmsg)
+      } else {
+        optim_coefs <- as.list(coefficients(fit))
+        mod_pred <- model_func()$func(optim_coefs, plot$newx)
+        outtab <- t(summary(fit)$coefficients[,1:2])
+        output$fit_print <- renderTable({outtab}, rownames=TRUE)
+      }
+    }) ## end if fitButton
+      
+      
+    output$plot_fitting <- renderPlot({
+        
+      if(!is.null(data())){
+        
+        if(length(plot$newx == guess())){
+        
+          df_guess <- data.frame(x = plot$newx, y = guess())
+        
+          plot_guess <- reactive({
+            if(input$seeGuess)
+              geom_line(data = df_guess, aes(x,y), colour = "red")
+            else
+              return(NULL)
+          })
+        
+          if(input$fitButton){
           
-          plot$fit <- geom_line(data = data.frame(x = df_reac$df_transformation$x, y = fitted(fit)), aes(x,y), colour = "green")
+            plot_fitting <- reactive({
+              geom_line(data = data.frame(x = df_reac$df_transformation$x, y = fitted(plot$fit)), aes(x,y), colour = "green")
+            })
           
-          if(is.null(plot$transformation)){
-            return(plot$plot + plot$guess + plot$fit)
-          } else {
-            return(plot$transformation + plot$guess + plot$fit)
-          }
+            if(is.null(plot$transformation)){
+              return(plot$plot + plot_guess() + plot_fitting())
+            } else {
+              return(plot$transformation + plot_guess() + plot_fitting())
+            }
           
         } else {
           if(is.null(plot$transformation)){
-            return(plot$plot + plot$guess)
+            return(plot$plot + plot_guess())
           } else {
-            return(plot$transformation + plot$guess)
+            return(plot$transformation + plot_guess())
+          }
         }
-        }
-      }
-    
-    })
+      } ## end if(length(plot$newx == guess())){
 
+    } else { ## end if !is.null(data())
+        return(NULL)
+    }
+  }) ## end renderPlot()
 
   output$model_formula <- renderUI({
     if (is.null(input$model_type)) { return() }
@@ -451,7 +479,7 @@ shinyServer(function(input, output) {
            "exp_dec" = withMathJax(helpText("$$y = a \\cdot \\exp\\left(-\\frac{x}{t}\\right)$$")),
            "double_exp_dec" = withMathJax(helpText("$$y = a \\cdot \\left(1 - \\exp\\left(-\\frac{x}{t}\\right)\\right)+\\exp\\left(-\\frac{x}{t}\\right)$$"))
     )
-  })
+  }) ##end output$model_formula
   
   output$coef_guess_ui <- renderUI({
     if (is.null(input$model_type)) { return() }
@@ -463,8 +491,9 @@ shinyServer(function(input, output) {
            "exp_dec" = list(numericInput("a", "a:", value = 1),
                             numericInput("t", "t:", value = 100)),
            "double_exp_dec" = list(numericInput("a", "a:", value = 1),
-                            numericInput("t", "t:", value = 100))
+                                   numericInput("t", "t:", value = 100))
     )
-  })
-
+  }) ##end output$coef_gues_ui
+  
 })
+
