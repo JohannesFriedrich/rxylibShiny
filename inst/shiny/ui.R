@@ -90,8 +90,9 @@ shinyUI(
                                         "Double exponential decay"  = "double_exp_dec"),selected = "linear"),
                           uiOutput("model_formula"),
                           br(),
+                          h4("Set starting parameters"),
                           uiOutput("coef_guess_ui"),
-                          checkboxInput("seeGuess", "See guess"),
+                          checkboxInput("seeGuess", "See guess", FALSE),
                           actionButton("fitButton", "Fit"),
                           htmlOutput("test")
                       )),

@@ -302,6 +302,21 @@ shinyServer(function(input, output) {
           y <- vapply(y, FUN = function(Y) {max(0,Y)}, FUN.VALUE = 1)
         }
         
+
+        
+
+        ## check if logarithmic axis
+        if(input$execute_logx & !input$execute_logy){
+          x <- log(x)
+        }
+        else if(!input$execute_logx & input$execute_logy){
+          y <- log(y)
+        }
+        else if(input$execute_logx & input$execute_logy){
+          x <- log(x)
+          y <- log(x)
+        }
+        
         ## basic plot
         df <- data.frame(x = x, y = y)
         
@@ -313,16 +328,6 @@ shinyServer(function(input, output) {
           xlab(x_lab) + 
           ylab(y_lab) 
         
-        ## check if logarithmic axis
-        if(input$execute_logx & !input$execute_logy){
-          gg_transformation <- gg_transformation + scale_x_log10()
-        }
-        else if(!input$execute_logx & input$execute_logy){
-          gg_transformation <- gg_transformation + scale_y_log10()
-        }
-        else if(input$execute_logx & input$execute_logy){
-          gg_transformation <- gg_transformation + scale_x_log10() + scale_y_log10()
-        }
         
         if(!is.null(ranges$x_transformation)){
           
@@ -447,7 +452,10 @@ shinyServer(function(input, output) {
           if(input$fitButton){
           
             plot_fitting <- reactive({
-              geom_line(data = data.frame(x = df_reac$df_transformation$x, y = fitted(plot$fit)), aes(x,y), colour = "green")
+              if(inherits(plot$fit, "try-error"))
+                NULL
+              else 
+                geom_line(data = data.frame(x = df_reac$df_transformation$x, y = fitted(plot$fit)), aes(x,y), colour = "green")
             })
           
             if(is.null(plot$transformation)){
