@@ -1,6 +1,6 @@
 ## Server.R
 
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
   
   
   #################################
@@ -259,26 +259,31 @@ shinyServer(function(input, output) {
         x <- data()$dataset[[blk_nr()]]$data_block[,x_axis()]
         y <- data()$dataset[[blk_nr()]]$data_block[,y_axis()]
         
-        if(input$execute_normalisation_max){
-          y <- y/max(y) 
-          y_lab <- "Normalised"
-        }
         
-        if(input$execute_normalisation_first){
-          y <- y/y[1]
-          y_lab <- "Normalised"
-        }
+        switch(input$execute_normalisation,
+               
+          none = {},
+               
+          max = {
+            y <- y/max(y) 
+            y_lab <- "Normalised"
+          },
         
-        if(input$execute_normalisation_last){
-          y <- y/y[length(y)]
-          y_lab <- "Normalised"
-        }
+          first = {
+            y <- y/y[1]
+            y_lab <- "Normalised"
+          },
+        
+          last = {
+            y <- y/y[length(y)]
+            y_lab <- "Normalised"
+        }) ## end switch
         
         
         if(input$execute_inverse){
           y <- -y 
         }
-        
+      
         if(input$execute_wl2energy){
           y <-   y * x^2/(4.13566733e-015 * 299792458e+09)
           x <- 4.13566733e-015 * 299792458e+09 / x
@@ -410,6 +415,7 @@ shinyServer(function(input, output) {
     })
       
     observeEvent(input$fitButton, {
+      
       mod_form <- switch(input$model_type,
                            "linear" = formula(y~a*x+y_0),
                            "exp_dec" = formula(y~a*exp(-x/t)),
@@ -463,7 +469,6 @@ shinyServer(function(input, output) {
             } else {
               return(plot$transformation + plot_guess() + plot_fitting())
             }
-          
         } else {
           if(is.null(plot$transformation)){
             return(plot$plot + plot_guess())

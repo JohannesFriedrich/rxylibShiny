@@ -49,9 +49,16 @@ shinyUI(
                         
                         column(4, wellPanel(
                           h2("Transformations"),
-                          checkboxInput('execute_normalisation_max', 'Normalise to maximum', FALSE),
-                          checkboxInput('execute_normalisation_first', 'Normalise to first data point', FALSE),
-                          checkboxInput('execute_normalisation_last', 'Normalise to last data point', FALSE),
+                          radioButtons('execute_normalisation', 
+                                             'Normalise to:', 
+                                             choices = c("None" = "none",
+                                                         "Max" = "max", 
+                                                         "Last" = "last",
+                                                         "First" = "first"), 
+                                             selected = NULL,
+                                             inline = TRUE),
+                          # checkboxInput('execute_normalisation_first', 'Normalise to first data point', FALSE),
+                          # checkboxInput('execute_normalisation_last', 'Normalise to last data point', FALSE),
                           checkboxInput('execute_inverse', 'Inverse', FALSE),
                           checkboxInput('execute_logx', 'log x', FALSE),
                           checkboxInput('execute_logy', 'log y', FALSE),
@@ -69,9 +76,9 @@ shinyUI(
                                      dblclick = "plot_transformation_dblclick",
                                      brush = brushOpts(
                                        id = "plot_transformation_brush",
-                                       resetOnNew = TRUE))
-                          
-                        ))
+                                       resetOnNew = TRUE)),
+                          helpText("Choose zoom area with mouse and double click for zoom. Double klick again for default view.")
+                          ))
                         ) ## end fluid row
                       ), ## end tab TRANSFORMATION
              
