@@ -204,7 +204,7 @@ shinyServer(function(input, output, session) {
   
   output$download_Data <- downloadHandler(
     filename = function() { 
-      paste(input$file, "_", Sys.Date(), ".csv", sep="") 
+      paste(input$file, "_", Sys.Date(), ".txt", sep="") 
       },
     content = function(file) {
 
