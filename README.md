@@ -14,11 +14,11 @@ Until now the plot and transformation panel is fully supported. This is not the 
 
 ### Data panel:
 
-![](docs/img/screenshot.jpg)
+![](img/screenshot.jpg)
 
 ### Transformation panel:
 
-![](docs/img/screenshot2.jpg)
+![](img/screenshot2.jpg)
 
 ## Installation and usage
 
