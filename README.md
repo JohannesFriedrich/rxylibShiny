@@ -23,8 +23,9 @@ Until now the plot and transformation panel is fully supported. This is not the 
 ## Installation and usage
 
 ```{r}
-
-install.packages("rxylibShiny")
+if(!require("devtools"))
+  install.packages("devtools")
+devtools::install_github("JohannesFriedrich/rxylibShiny@master")
 ```
 
 The application can be run on a local machine with the following command:
@@ -47,7 +48,7 @@ rxylibShiny::run_rxylib()
 
 * ~~Add download of converted data with decision between with or without metadata~~
 * Add transformations (~~invert, log, log-log, wavelength -> energy (and vice versa)~~,...)
-* Add fitting functions
+* Add fitting function
 * Add csv download function
 
 ## License
