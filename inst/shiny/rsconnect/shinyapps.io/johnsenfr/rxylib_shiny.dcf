@@ -1,0 +1,12 @@
+name: rxylib_shiny
+title: rxylib Shiny
+username:
+account: johnsenfr
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 204915
+bundleId: 954389
+url: https://johnsenfr.shinyapps.io/rxylib_shiny/
+when: 1503657116.33836
+asMultiple: FALSE
+asStatic: FALSE

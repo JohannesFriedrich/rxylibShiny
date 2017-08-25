@@ -204,7 +204,7 @@ shinyServer(function(input, output, session) {
   
   output$download_Data <- downloadHandler(
     filename = function() { 
-      paste(input$file, "_", Sys.Date(), ".txt", sep="") 
+      paste(input$file, "_", Sys.Date(), ".csv", sep="") 
       },
     content = function(file) {
 
@@ -241,8 +241,7 @@ shinyServer(function(input, output, session) {
         }
           
       } ## end for loop
-    },
-    contentType = "text/plain"
+    }
   ) ## end downloadHandler
   
   #################################
@@ -437,9 +436,10 @@ shinyServer(function(input, output, session) {
         outtab <- t(summary(fit)$coefficients[,1:2])
         output$fit_print <- renderTable({outtab}, rownames=TRUE)
       }
+      
+      
     }) ## end if fitButton
-      
-      
+    
     output$plot_fitting <- renderPlot({
         
       if(!is.null(data())){
@@ -448,40 +448,42 @@ shinyServer(function(input, output, session) {
         
           df_guess <- data.frame(x = plot$newx, y = guess())
         
-          plot_guess <- reactive({
-            if(input$seeGuess)
-              geom_line(data = df_guess, aes(x,y), colour = "red")
-            else
-              return(NULL)
-          })
+          if(input$seeGuess)
+            plot$guess <- geom_line(data = df_guess, aes(x,y), colour = "red")
+          else
+            plot$guess <- NULL
         
           if(input$fitButton){
           
-            plot_fitting <- reactive({
-              if(inherits(plot$fit, "try-error"))
-                NULL
-              else 
-                geom_line(data = data.frame(x = df_reac$df_transformation$x, y = fitted(plot$fit)), aes(x,y), colour = "green")
-            })
-          
-            if(is.null(plot$transformation)){
-              return(plot$plot + plot_guess() + plot_fitting())
+            if(inherits(plot$fit, "try-error")){
+              plot$fitting <- NULL
             } else {
-              return(plot$transformation + plot_guess() + plot_fitting())
+              plot$fitting <- geom_line(data = data.frame(x = df_reac$df_transformation$x, 
+                                                          y = fitted(plot$fit)), 
+                                        aes(x,y), 
+                                        colour = "green")
             }
-        } else {
-          if(is.null(plot$transformation)){
-            return(plot$plot + plot_guess())
-          } else {
-            return(plot$transformation + plot_guess())
+
           }
-        }
+          
+          make_fit_plot(plot$plot, plot$guess, plot$transformation, plot$fitting)
       } ## end if(length(plot$newx == guess())){
 
     } else { ## end if !is.null(data())
         return(NULL)
     }
   }) ## end renderPlot()
+    
+    
+    make_fit_plot <- function(plot_plot, plot_guess, plot_transformation, plot_fitting){
+      
+      if(is.null(plot_transformation)){
+        return(plot_plot + plot_guess + plot_fitting)
+      } else {
+        return(plot_transformation + plot_guess + plot_fitting)
+      }
+      
+    }
 
   output$model_formula <- renderUI({
     if (is.null(input$model_type)) { return() }
