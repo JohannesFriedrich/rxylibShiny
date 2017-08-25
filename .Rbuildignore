@@ -10,3 +10,4 @@ img/
 LICENSE$
 README\.md
 ^appveyor\.yml$
+^docs$
