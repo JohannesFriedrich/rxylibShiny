@@ -1,5 +1,9 @@
 # rxylib Shiny
 
+[![Build Status](https://travis-ci.org/JohannesFriedrich/rxylibShiny.svg?branch=master)](https://travis-ci.org/JohannesFriedrich/rxylibShiny)
+[![Build status](https://ci.appveyor.com/api/projects/status/tciywrm10kn43n1g?svg=true)](https://ci.appveyor.com/project/JohannesFriedrich/rxylibshiny)
+
+
 'rxylib Shiny' is a [Shiny](http://shiny.rstudio.com) app providing a graphical user interface for the **R** package ['rxylib'](https://CRAN.R-project.org/package=rxylib). The app allows visualising x-y data from different file formats. For a complete overview see the ['rxylib'](https://CRAN.R-project.org/package=rxylib) manual.
 
 It is possible to load different file formats and see the x-y plot. Another feature is the transformation of data, e.g. translating wavelength spectra into energy sepctra or normalisations, ...
@@ -39,10 +43,6 @@ rxylibShiny::run_rxylib()
 * [xylib](https://github.com/wojdyr/xylib)
 * [rxylib](https://github.com/R-Lum/rxylib)
 * [fityk](http://fityk.nieto.pl/)
-
-## Platform tests status 
-[![Build Status](https://travis-ci.org/JohannesFriedrich/rxylibShiny.svg?branch=master)](https://travis-ci.org/JohannesFriedrich/rxylibShiny)
-[![Build status](https://ci.appveyor.com/api/projects/status/tciywrm10kn43n1g?svg=true)](https://ci.appveyor.com/project/JohannesFriedrich/rxylibshiny)
 
 ## To Do
 
