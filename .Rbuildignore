@@ -11,3 +11,5 @@ LICENSE$
 README\.md
 ^appveyor\.yml$
 ^docs$
+^pkgdown$
+^_pkgdown\.yml$
