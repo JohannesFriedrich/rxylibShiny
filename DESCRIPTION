@@ -6,9 +6,9 @@ Date: 2017-09-01
 Author: Johannes Friedrich [aut, cre],
         rxylib Team [ctb]
 Authors@R: c(
-    person("Johannes", "Friedrich", role = c("aut", "cre"), email = "johannes.friedrich@uni-bayreuth.de")
+    person("Johannes", "Friedrich", role = c("aut", "cre"), email = "Johannes.Friedrich@uni-bayreuth.de")
     )
-Maintainer: Johannes Friedrich <johannes.friedrich@uni-bayreuth.de>
+Maintainer: Johannes Friedrich <Johannes.Friedrich@uni-bayreuth.de>
 Description: A shiny application for the R package 'rxylib'.
 License: GPL-3
 Depends:

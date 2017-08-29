@@ -126,7 +126,11 @@ shinyUI(
                       h5("Authors"),
                       p("Johannes Friedrich, University of Bayreuth (Germany)"),
                       h5("Contact"),
-                      p("johannes.friedrich@uni-bayreuth.de"),
+                      p("Johannes.Friedrich@uni-bayreuth.de"),
+                      h5("Homepage"),
+                      p("https://johannesfriedrich.github.io/rxylibShiny/"),
+                      h5("GitHub"),
+                      p("https://github.com/JohannesFriedrich/rxylibShiny/settings"),
                       br(),
                       h5("License"),
                       p("This program is free software: you can redistribute it and/or
