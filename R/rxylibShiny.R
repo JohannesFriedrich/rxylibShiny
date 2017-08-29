@@ -2,6 +2,6 @@
 #'
 #' @name rxylibShiny-package
 #' @docType package
-#' @import shiny rxylib
+#' @import shiny rxylib ggplot2
 #' @md
 NULL
