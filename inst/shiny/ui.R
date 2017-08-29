@@ -92,8 +92,10 @@ shinyUI(
                         
                         column(5, wellPanel(
                           selectInput("model_type", "Select a model", 
-                                      c("Exponential decay" = "exp_dec", 
-                                        "Linear Model" = "linear",
+                                      c("Linear Model" = "linear",
+                                        "Quadratic" = "quadratic",
+                                        "Cubic" = "cubic",
+                                        "Exponential decay" = "exp_dec", 
                                         "Double exponential decay"  = "double_exp_dec"),selected = "linear"),
                           uiOutput("model_formula"),
                           br(),

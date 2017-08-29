@@ -354,11 +354,32 @@ shinyServer(function(input, output, session) {
   ## TAB 3: FITTING PANEL
   #################################
   
+  ## Function definitons ##
+  
     linear_fit <- function(model_coefs, newx){
       a <- model_coefs$a
       y_0 <- model_coefs$y_0
       out <- a * newx + y_0
       return(out)
+    }
+  
+    quadratic_fit <- function(model_coefs, newx){
+      a0 <- model_coefs$a0
+      a1 <- model_coefs$a1
+      a2 <- model_coefs$a2
+      out <- a0 + a1 * newx + a2 * newx^2
+      return(out)
+    
+    }
+    
+    cubic_fit <- function(model_coefs, newx){
+      a0 <- model_coefs$a0
+      a1 <- model_coefs$a1
+      a2 <- model_coefs$a2
+      a3 <- model_coefs$a3
+      out <- a0 + a1 * newx + a2 * newx^2 + a3 * newx^3
+      return(out)
+      
     }
     
     exp_dec_fit <- function(model_coefs, newx){
@@ -385,6 +406,8 @@ shinyServer(function(input, output, session) {
     model_func <- reactive({
      func <- switch(input$model_type,
                            "linear" = linear_fit,
+                           "quadratic" = quadratic_fit,
+                           "cubic" = cubic_fit,
                            "exp_dec" = exp_dec_fit,
                            "double_exp_dec" = double_exp_dec_fit)
      
@@ -395,6 +418,8 @@ shinyServer(function(input, output, session) {
     model_coefs <- reactive({
         switch(input$model_type,
                             "linear" = list("a" = input$a, "y_0" = input$y_0),
+                            "quadratic" = list("a0" = input$a0, "a1" = input$a1, "a2" = input$a2),
+                            "cubic" = list("a0" = input$a0, "a1" = input$a1, "a2" = input$a2, "a3" = input$a3),
                             "exp_dec" = list("a" = input$a, "t" = input$t),
                             "double_exp_dec" = list("a" = input$a, "t" = input$t))
     })
@@ -417,6 +442,8 @@ shinyServer(function(input, output, session) {
       
       mod_form <- switch(input$model_type,
                            "linear" = formula(y~a*x+y_0),
+                           "quadratic" = formula(y~a0 + a1*x + a2*x^2 ),
+                           "cubic" = formula(y~a0 + a1*x + a2*x^2 + a3*x^3),
                            "exp_dec" = formula(y~a*exp(-x/t)),
                            "double_exp_dec" = formula(y ~ a*(1-exp(-x/t)) + exp(-x/t)))
         
@@ -491,6 +518,8 @@ shinyServer(function(input, output, session) {
     # UI component and send it to the client.
     switch(input$model_type,
            "linear" = withMathJax(helpText("$$y = a \\cdot x + y_0$$")),
+           "quadratic" = withMathJax(helpText("$$y = a_0 + a_1 \\cdot x + a_2 \\cdot x^2$$")),
+           "cubic" = withMathJax(helpText("$$y = a_0 + a_1 \\cdot x + a_2 \\cdot x^2 + a_3 \\cdot x^3$$")),
            "exp_dec" = withMathJax(helpText("$$y = a \\cdot \\exp\\left(-\\frac{x}{t}\\right)$$")),
            "double_exp_dec" = withMathJax(helpText("$$y = a \\cdot \\left(1 - \\exp\\left(-\\frac{x}{t}\\right)\\right)+\\exp\\left(-\\frac{x}{t}\\right)$$"))
     )
@@ -501,12 +530,23 @@ shinyServer(function(input, output, session) {
     # Depending on input$model_type, we'll generate a different
     # UI component and send it to the client.
     switch(input$model_type,
-           "linear" = list(numericInput("a", "a:", value = 1),
+           "linear" = list(numericInput("a", withMathJax(helpText("$$a$$")), value = 1),
                            numericInput("y_0", withMathJax(helpText("$$y_0$$")), value = 0)),
-           "exp_dec" = list(numericInput("a", "a:", value = 1),
-                            numericInput("t", "t:", value = 100)),
-           "double_exp_dec" = list(numericInput("a", "a:", value = 1),
-                                   numericInput("t", "t:", value = 100))
+           
+           "quadratic" = list(numericInput("a0", withMathJax(helpText("$$a_0$$")), value = 1),
+                              numericInput("a1", withMathJax(helpText("$$a_1$$")), value = 0),
+                              numericInput("a2", withMathJax(helpText("$$a_2$$")), value = 0)),
+           
+           "cubic" = list(numericInput("a0", withMathJax(helpText("$$a_0$$")), value = 1),
+                          numericInput("a1", withMathJax(helpText("$$a_1$$")), value = 0),
+                          numericInput("a2", withMathJax(helpText("$$a_2$$")), value = 0),
+                          numericInput("a3", withMathJax(helpText("$$a_3$$")), value = 0)),
+           
+           "exp_dec" = list(numericInput("a", withMathJax(helpText("$$a$$")), value = 1),
+                            numericInput("t", withMathJax(helpText("$$t$$")), value = 100)),
+           
+           "double_exp_dec" = list(numericInput("a", withMathJax(helpText("$$a$$")), value = 1),
+                                   numericInput("t", withMathJax(helpText("$$t$$")), value = 100))
     )
   }) ##end output$coef_gues_ui
   
