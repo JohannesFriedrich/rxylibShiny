@@ -46,9 +46,7 @@ rxylibShiny::run_rxylib()
 
 ## To Do
 
-* ~~Add download of converted data with decision between with or without metadata~~
-* Add transformations (~~invert, log, log-log, wavelength -> energy (and vice versa)~~,...)
-* Add fitting function
+* Add fitting functions (on request)
 * Add csv download function
 
 ## License

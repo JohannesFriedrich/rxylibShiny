@@ -96,14 +96,24 @@ shinyUI(
                                         "Quadratic" = "quadratic",
                                         "Cubic" = "cubic",
                                         "Exponential decay" = "exp_dec", 
-                                        "Double exponential decay"  = "double_exp_dec"),selected = "linear"),
+                                        "Double exponential decay"  = "double_exp_dec",
+                                        "Gaussian" = "gaussian"
+                                        ),
+                                      selected = "linear"),
                           uiOutput("model_formula"),
                           br(),
                           h4("Set starting parameters"),
                           uiOutput("coef_guess_ui"),
-                          checkboxInput("seeGuess", "See guess", FALSE),
-                          actionButton("fitButton", "Fit"),
-                          htmlOutput("test")
+                          fluidRow(
+                            column(6, checkboxInput("seeGuess", "See guess", FALSE)),
+                            column(6, numericInput("digits_fit", 
+                                                   label = "Digits for the fit", 
+                                                   value = 4, 
+                                                   min = 1,
+                                                   max = 12,
+                                                   step = 1))
+                          ), # end fluidRow
+                          actionButton("fitButton", "Fit")
                       )),
                       column(7, wellPanel(
                       plotOutput(
@@ -128,11 +138,11 @@ shinyUI(
                       h5("Authors"),
                       p("Johannes Friedrich, University of Bayreuth (Germany)"),
                       h5("Contact"),
-                      p("Johannes.Friedrich@uni-bayreuth.de"),
-                      h5("Homepage"),
-                      p("https://johannesfriedrich.github.io/rxylibShiny/"),
-                      h5("GitHub"),
-                      p("https://github.com/JohannesFriedrich/rxylibShiny/settings"),
+                      a("Johannes.Friedrich@uni-bayreuth.de"),
+                      br(),
+                      a(href = "https://johannesfriedrich.github.io/rxylibShiny", "Homepage"),
+                      br(),
+                      a(href = "https://github.com/JohannesFriedrich/rxylibShiny", "GitHub"),
                       br(),
                       h5("License"),
                       p("This program is free software: you can redistribute it and/or

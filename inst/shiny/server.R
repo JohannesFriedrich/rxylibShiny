@@ -395,6 +395,14 @@ shinyServer(function(input, output, session) {
       out <- a * (1 - exp(-newx/t)) + exp(-newx/t)
       return(out)
     }
+    
+    gaussian_fit <- function(model_coefs, newx){
+      a <- model_coefs$a
+      w <- model_coefs$w
+      mu <- model_coefs$mu
+      out <- a * exp((- 4 *log(2) * (newx - mu)^2)/w^2)
+      return(out)
+    }
  
     fit_model <- function(mod_form, start, dat){
       fit <- try(minpack.lm::nlsLM(formula = mod_form, data=dat, start=start,
@@ -409,7 +417,8 @@ shinyServer(function(input, output, session) {
                            "quadratic" = quadratic_fit,
                            "cubic" = cubic_fit,
                            "exp_dec" = exp_dec_fit,
-                           "double_exp_dec" = double_exp_dec_fit)
+                           "double_exp_dec" = double_exp_dec_fit,
+                           "gaussian" = gaussian_fit)
      
      return(list(func = func))
     })
@@ -421,7 +430,8 @@ shinyServer(function(input, output, session) {
                             "quadratic" = list("a0" = input$a0, "a1" = input$a1, "a2" = input$a2),
                             "cubic" = list("a0" = input$a0, "a1" = input$a1, "a2" = input$a2, "a3" = input$a3),
                             "exp_dec" = list("a" = input$a, "t" = input$t),
-                            "double_exp_dec" = list("a" = input$a, "t" = input$t))
+                            "double_exp_dec" = list("a" = input$a, "t" = input$t),
+                            "gaussian" = list("a" = input$a, "w" = input$w, "mu" = input$mu))
     })
     
     guess <- reactive({
@@ -445,7 +455,8 @@ shinyServer(function(input, output, session) {
                            "quadratic" = formula(y~a0 + a1*x + a2*x^2 ),
                            "cubic" = formula(y~a0 + a1*x + a2*x^2 + a3*x^3),
                            "exp_dec" = formula(y~a*exp(-x/t)),
-                           "double_exp_dec" = formula(y ~ a*(1-exp(-x/t)) + exp(-x/t)))
+                           "double_exp_dec" = formula(y ~ a*(1-exp(-x/t)) + exp(-x/t)),
+                           "gaussian" = formula(y ~ a * exp((- 4 *log(2) * (x - mu)^2)/w^2)))
         
         
         
@@ -461,7 +472,7 @@ shinyServer(function(input, output, session) {
         optim_coefs <- as.list(coefficients(fit))
         mod_pred <- model_func()$func(optim_coefs, plot$newx)
         outtab <- t(summary(fit)$coefficients[,1:2])
-        output$fit_print <- renderTable({outtab}, rownames=TRUE)
+        output$fit_print <- renderTable({outtab}, rownames = TRUE, digits = input$digits_fit)
       }
       
       
@@ -521,7 +532,8 @@ shinyServer(function(input, output, session) {
            "quadratic" = withMathJax(helpText("$$y = a_0 + a_1 \\cdot x + a_2 \\cdot x^2$$")),
            "cubic" = withMathJax(helpText("$$y = a_0 + a_1 \\cdot x + a_2 \\cdot x^2 + a_3 \\cdot x^3$$")),
            "exp_dec" = withMathJax(helpText("$$y = a \\cdot \\exp\\left(-\\frac{x}{t}\\right)$$")),
-           "double_exp_dec" = withMathJax(helpText("$$y = a \\cdot \\left(1 - \\exp\\left(-\\frac{x}{t}\\right)\\right)+\\exp\\left(-\\frac{x}{t}\\right)$$"))
+           "double_exp_dec" = withMathJax(helpText("$$y = a \\cdot \\left(1 - \\exp\\left(-\\frac{x}{t}\\right)\\right)+\\exp\\left(-\\frac{x}{t}\\right)$$")),
+           "gaussian" = withMathJax(helpText("$$y = a \\cdot \\exp\\left(-\\frac{4 \\cdot \\ln(2) \\cdot \\left(x-\\mu\\right)^2}{w^2}\\right)$$"))
     )
   }) ##end output$model_formula
   
@@ -546,7 +558,10 @@ shinyServer(function(input, output, session) {
                             numericInput("t", withMathJax(helpText("$$t$$")), value = 100)),
            
            "double_exp_dec" = list(numericInput("a", withMathJax(helpText("$$a$$")), value = 1),
-                                   numericInput("t", withMathJax(helpText("$$t$$")), value = 100))
+                                   numericInput("t", withMathJax(helpText("$$t$$")), value = 100)),
+           "gaussian" = list(numericInput("a", withMathJax(helpText("$$a$$")), value = 1),
+                             numericInput("w", withMathJax(helpText("$$w \\left(FWHM\\right)$$")), value = 1),
+                             numericInput("mu", withMathJax(helpText("$$\\mu$$")), value = 0))
     )
   }) ##end output$coef_gues_ui
   
