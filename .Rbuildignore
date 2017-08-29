@@ -13,3 +13,7 @@ README\.md
 ^docs$
 ^pkgdown$
 ^_pkgdown\.yml$
+
+# CRAN
+cran-comments.md
+cran-comments.html
