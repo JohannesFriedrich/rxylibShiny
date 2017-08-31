@@ -47,7 +47,7 @@ rxylibShiny::run_rxylib()
 ## To Do
 
 * Add fitting functions (on request)
-* Add csv download function
+* Add possibility to plot multiple blocks
 
 ## License
 
