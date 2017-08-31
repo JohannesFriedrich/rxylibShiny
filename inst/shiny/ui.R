@@ -123,7 +123,6 @@ shinyUI(
                           id = "plot_fitting_brush",
                           resetOnNew = TRUE)
                       ),
-                      helpText("Choose zoom area with mouse and double click for zoom. Double klick again for default view."),
                       htmlOutput("fit_print")
                       ))
                       ) # end fluidRow

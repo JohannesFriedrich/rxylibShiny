@@ -204,40 +204,38 @@ shinyServer(function(input, output, session) {
   
   output$download_Data <- downloadHandler(
     filename = function() { 
-      paste(input$file, "_", Sys.Date(), ".txt", sep="") 
+      paste0(input$file, "_", Sys.Date(), ".csv") 
       },
     content = function(file) {
 
       for(i in 1:length(data()$dataset)){
         if(i ==1) {
-          write.table(data.frame("Exported by rxylibShiny", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE)
+          write.table(data.frame("# Exported by rxylibShiny", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE)
           if(input$download_Meta){
             write.table(data.frame("# Metadata", ""), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
-            write.table(data()$metadata, file, row.names = FALSE, quote = FALSE, append = TRUE)
-            write.table(data.frame("","\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+            write.table(data.frame(paste0("# ", data()$metadata[,1]), data()$metadata[,2]), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
           }
-          
+
           if(is.null(names(data()$dataset)) || names(data()$dataset) == ""){
-            write.table(data.frame("#BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+            write.table(data.frame("## BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
           } else {
-            write.table(data.frame(names(data()$dataset)[i], ""), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+            write.table(data.frame(paste("#", names(data()$dataset)[i]), ""), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
           }
           
-          write.table(data()$dataset[[i]]$data_block, file, row.names = FALSE, append = TRUE)
-          write.table(data.frame("\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+          write.table(data()$dataset[[i]]$data_block, file, row.names = FALSE, append = TRUE, sep = ",")
+
         } else {
           if(is.null(names(data()$dataset)) || names(data()$dataset) == ""){
-            write.table(data.frame("#BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+            write.table(data.frame("## BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
           } else {
-            write.table(data.frame(names(data()$dataset)[i], ""), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+            write.table(data.frame(paste("#", names(data()$dataset)[i]), ""), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
           }
           if(input$download_Meta){
-            write.table(data()$dataset[[i]]$metadata_block, file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
-            write.table(data.frame("","\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+            write.table(data.frame(paste0("# ", data()$dataset[[i]]$metadata_block[,1]), data()$dataset[[i]]$metadata_block[,2]), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
           }
-          write.table(data()$dataset[[i]]$data_block, file, row.names = FALSE, append = TRUE, quote = FALSE)
-          write.table(data.frame("","\n"), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
           
+          
+          write.table(data()$dataset[[i]]$data_block, file, col.names = FALSE, row.names = FALSE, append = TRUE, sep = ",", quote = FALSE)
         }
           
       } ## end for loop
@@ -469,9 +467,8 @@ shinyServer(function(input, output, session) {
         output$fit_print_caption <- renderText("")
         output$fit_print <- renderText(outmsg)
       } else {
-        optim_coefs <- as.list(coefficients(fit))
-        mod_pred <- model_func()$func(optim_coefs, plot$newx)
-        outtab <- t(summary(fit)$coefficients[,1:2])
+        summary <- summary(fit)
+        outtab <- t(summary$coefficients[,1:2])
         output$fit_print <- renderTable({outtab}, rownames = TRUE, digits = input$digits_fit)
       }
       
