@@ -1,5 +1,8 @@
 ## Server.R
 
+# allow upload until 200 MB
+options(shiny.maxRequestSize = 200*1024^2) 
+
 shinyServer(function(input, output, session) {
   
   
@@ -26,6 +29,8 @@ shinyServer(function(input, output, session) {
                          fit = NULL,
                          df = NULL)
   
+  buttons <- reactiveValues(fit = NULL)
+  
   df_reac <- reactiveValues(
     df_transformation = NULL)
   
@@ -49,6 +54,7 @@ shinyServer(function(input, output, session) {
     }
 
   })
+
   
   x_axis <- reactive({
 
@@ -69,10 +75,11 @@ shinyServer(function(input, output, session) {
   })
 
   blk_nr <- reactive({
+    
     if(is.null(input$blocks))
       return(1)
     else
-      return(input$blocks)
+      return(as.numeric(input$blocks))
 
   })
   
@@ -138,7 +145,7 @@ shinyServer(function(input, output, session) {
   })
   
   ## create dropdown list with n-elements (n = number of blocks)
-  output$block_ui <-   renderUI({
+  output$block_ui <- renderUI({
     if (is.null(data())) { return() }
     
     if(is.null(names(data()$dataset)) || names(data()$dataset) == ""){
@@ -146,13 +153,25 @@ shinyServer(function(input, output, session) {
     } else {
       blk_name <- names(data()$dataset)
     }
+    
+    blk_name_list <- seq_along(blk_name)
+    names(blk_name_list) <- blk_name
 
     selectInput("blocks",
                 "Blocks:",
-                choices = blk_name
+                choices = blk_name_list
     )
   })
   
+  # if block is changed, remove fit
+  observeEvent(input$blocks, {
+
+        buttons$fit <- FALSE
+        plot$fitting <- NULL
+        plot$transformation <- NULL
+
+  })
+
   #create dropdown list with n-elements (n = number of columns in one block)
   output$column_ui <-   renderUI({
     if (is.null(data()) || is.null(blk_nr())) { return() }
@@ -184,21 +203,22 @@ shinyServer(function(input, output, session) {
       df <- data.frame(x = x, y = y)
       gg_plot <- ggplot(data = df , aes(x = x, y = y)) +
         geom_point() +
-        xlab(x_lab) + 
-        ylab(y_lab) 
-      
+        xlab(x_lab) +
+        ylab(y_lab)
+
       if(!is.null(ranges$x)){
-        
+
         gg_plot <- gg_plot + xlim(ranges$x)
       }
       if(!is.null(ranges$y)){
-        
+
         gg_plot <- gg_plot + ylim(ranges$y)
       }
-      
+
       plot$plot <- gg_plot
       
       return(gg_plot)
+      
     }
   })
   
@@ -472,6 +492,8 @@ shinyServer(function(input, output, session) {
         output$fit_print <- renderTable({outtab}, rownames = TRUE, digits = input$digits_fit)
       }
       
+      buttons$fit <- TRUE
+      
       
     }) ## end if fitButton
     
@@ -488,7 +510,7 @@ shinyServer(function(input, output, session) {
           else
             plot$guess <- NULL
         
-          if(input$fitButton){
+          if(buttons$fit){
           
             if(inherits(plot$fit, "try-error")){
               plot$fitting <- NULL
@@ -502,6 +524,7 @@ shinyServer(function(input, output, session) {
           }
           
           make_fit_plot(plot$plot, plot$guess, plot$transformation, plot$fitting)
+          
       } ## end if(length(plot$newx == guess())){
 
     } else { ## end if !is.null(data())

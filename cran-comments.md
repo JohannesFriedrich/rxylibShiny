@@ -4,7 +4,7 @@ New package submission
 
 ## Test environments
 
-* local Ubuntu 16.04 LTS, R version 3.4.1 (2017-06-30) and R-devel (2017-08-29 r73150)
+* local Ubuntu 16.04 LTS, R version 3.4.1 (2017-06-30) and R-devel (2017-08-31 r73172)
 * on AppVeyor CI
     * x86_64_w64-mingw32/64 (64-bit), R 3.4.0 (2017-04-21)
 * on Travis CI
@@ -12,3 +12,10 @@ New package submission
 
 ## R CMD check results
 There were no ERRORs or WARNINGs.
+
+There was 1 NOTE:
+
+* Maintainer: ‘Johannes Friedrich <johannes.friedrich@uni-bayreuth.de>’
+  New submission
+
+This is a new submission.
