@@ -11,6 +11,7 @@ shinyUI(
                       
                       column(4, wellPanel(
                         fileInput('file', 'Choose File'),
+                        textInput('URL', 'Submit URL', placeholder = "Copy URL to supported file format here"),
                         tags$hr(),
                         checkboxInput('dataset_meta_button', 'Show dataset meta data', TRUE),
                         checkboxInput('block_meta_button', 'Show block meta data', TRUE),

@@ -34,16 +34,21 @@ shinyServer(function(input, output, session) {
   df_reac <- reactiveValues(
     df_transformation = NULL)
   
-  # get input data
+  ###############
+  ## get input 
+  ###############
+  
   data <- reactive({
 
     input_file <- input$file
+    input_URL <- input$URL
 
-    if (is.null(input_file)){
+    if (is.null(input_file) & input_URL == ""){
 
       return(NULL)
 
-    } else {
+    } else if(!is.null(input_file)){ # input is file
+      
       ext <- tools::file_ext(input_file$name)
 
       file.rename(input_file$datapath,
@@ -51,6 +56,8 @@ shinyServer(function(input, output, session) {
 
       return(rxylib::read_xyData(file = paste(input_file$datapath, ext, sep = ".")))
 
+    } else { # input is URL
+      return(rxylib::read_xyData(file = as.character(input_URL)))
     }
 
   })
