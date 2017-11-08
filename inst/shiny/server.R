@@ -487,9 +487,7 @@ shinyServer(function(input, output, session) {
         output$fit_print_caption <- renderText("")
         output$fit_print <- renderText(outmsg)
       } else {
-        summary <- summary(fit)
-        outtab <- t(summary$coefficients[,1:2])
-        output$fit_print <- renderTable({outtab}, rownames = TRUE, digits = input$digits_fit)
+        output$fit_print <- renderTable({broom::tidy(fit)}, rownames = FALSE, digits = input$digits_fit)
       }
       
       buttons$fit <- TRUE

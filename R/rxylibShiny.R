@@ -2,6 +2,6 @@
 #'
 #' @name rxylibShiny-package
 #' @docType package
-#' @import shiny rxylib ggplot2
+#' @import shiny rxylib ggplot2 minpack.lm broom
 #' @md
 NULL
