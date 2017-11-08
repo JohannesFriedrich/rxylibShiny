@@ -1,3 +1,3 @@
-# rxylibShiny 0.0.1 (Release date: 1st September 2017)
+# rxylibShiny 0.0.1 (Release date: 10th November 2017)
 
 - Initial release

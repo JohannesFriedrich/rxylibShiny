@@ -2,7 +2,7 @@ Package: rxylibShiny
 Type: Package
 Title: Shiny Applications for the R Package 'rxylib'
 Version: 0.0.1
-Date: 2017-09-01
+Date: 2017-11-10
 Author: Johannes Friedrich [aut, cre],
         rxylib Team [ctb]
 Authors@R: c(
