@@ -56,8 +56,9 @@ shinyServer(function(input, output, session) {
   
   buttons <- reactiveValues(fit = NULL)
   
-  df_reac <- reactiveValues(
-    df_transformation = NULL)
+  df_reac <- reactiveValues(df_transformation = NULL)
+  
+  names <- reactiveValues(input_name = NULL)
   
   ###############
   ## get input 
@@ -74,6 +75,8 @@ shinyServer(function(input, output, session) {
 
     } else if(!is.null(input_file)){ # input is file
       
+      names$input_name <- input_file
+      
       ext <- tools::file_ext(input_file$name)
 
       file.rename(input_file$datapath,
@@ -82,6 +85,8 @@ shinyServer(function(input, output, session) {
       return(rxylib::read_xyData(file = paste(input_file$datapath, ext, sep = ".")))
 
     } else { # input is URL
+      names$input_name <- basename(input_URL)
+      
       return(rxylib::read_xyData(file = as.character(input_URL)))
     }
 
@@ -284,7 +289,7 @@ shinyServer(function(input, output, session) {
   
   output$download_Data <- downloadHandler(
     filename = function() { 
-      paste0(input$file, "_", Sys.Date(), ".csv") 
+      paste0(names$input_name, "_", Sys.Date(), ".csv") 
       },
     content = function(file) {
 
@@ -619,7 +624,7 @@ shinyServer(function(input, output, session) {
     
     output$download_Fit_table <- downloadHandler(
       filename = function() { 
-        paste0(input$file, "_Fitting_parameters_", Sys.Date(), ".csv") 
+        paste0(names$input_name, "_Fitting_parameters_", Sys.Date(), ".csv") 
       },
       content = function(file) {
         
@@ -647,7 +652,7 @@ shinyServer(function(input, output, session) {
     
     output$download_Fit_plot <- downloadHandler(
       filename = function() { 
-        paste0(input$file, "_Fitting_plot_", Sys.Date(), ".", input$set_output_format) 
+        paste0(names$input_name, "_Fitting_plot_", Sys.Date(), ".", input$set_output_format) 
       },
       content = function(file) {
         
