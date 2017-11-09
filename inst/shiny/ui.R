@@ -10,20 +10,34 @@ shinyUI(
                       fluidRow(
                       
                       column(4, wellPanel(
-                        fileInput('file', 'Choose File'),
-                        textInput('URL', 'Submit URL', placeholder = "Copy URL to supported file format here"),
+                        h3("Data input"),
+                        fileInput(inputId = "file", 
+                                  label = "Choose File"),
+                        textInput(inputId = "URL", 
+                                  label = "Submit URL", 
+                                  placeholder = "Copy URL to supported file format here"),
                         tags$hr(),
-                        checkboxInput('dataset_meta_button', 'Show dataset meta data', TRUE),
-                        checkboxInput('block_meta_button', 'Show block meta data', TRUE),
-                        downloadButton("download_Data", "Download"),
-                        checkboxInput("download_Meta", "Add meta data to download", FALSE),
-                        uiOutput("block_ui"),
-                        uiOutput("column_ui")
+                        checkboxInput(inputId = "dataset_meta_button", 
+                                      label = "Show dataset meta data",
+                                      value = TRUE),
+                        checkboxInput(inputId = "block_meta_button", 
+                                      label = "Show block meta data", 
+                                      value = TRUE),
+                        br(),
+                        tags$hr(),
+                        h3("Data output"),
+                        downloadButton(outputId = "download_Data",
+                                       label = "Download data as .csv"),
+                        checkboxInput(inputId = "download_Meta", 
+                                      label = "Add meta data to download", 
+                                      value = FALSE),
+                        uiOutput(outputId = "block_ui"),
+                        uiOutput(outputId = "column_ui")
                       )),
                       column(8, wellPanel(
                         h2("Plot"),
                         plotOutput(
-                          "plot",
+                          outputId = "plot",
                           dblclick = "plot_dblclick",
                           brush = brushOpts(
                             id = "plot_brush",
@@ -31,9 +45,9 @@ shinyUI(
                         ),
                         helpText("Choose zoom area with mouse and double click for zoom. Double klick again for default view."),
                         tabsetPanel(
-                          tabPanel("Dataset Metadata",
+                          tabPanel(title = "Dataset Metadata",
                                     shiny::dataTableOutput("dataset_metadata")),
-                          tabPanel("Block Metatdata",
+                          tabPanel(title = "Block Metatdata",
                                     shiny::dataTableOutput("block_metadata"))
                         ) ##  end tabsetPanel
                       ))
@@ -49,31 +63,29 @@ shinyUI(
                       fluidRow(
                         
                         column(4, wellPanel(
-                          h2("Transformations"),
-                          radioButtons('execute_normalisation', 
-                                             'Normalise to:', 
+                          h3("Transformations"),
+                          radioButtons("execute_normalisation", 
+                                             "Normalise to:", 
                                              choices = c("None" = "none",
                                                          "Max" = "max", 
                                                          "Last" = "last",
                                                          "First" = "first"), 
                                              selected = NULL,
                                              inline = TRUE),
-                          # checkboxInput('execute_normalisation_first', 'Normalise to first data point', FALSE),
-                          # checkboxInput('execute_normalisation_last', 'Normalise to last data point', FALSE),
-                          checkboxInput('execute_inverse', 'Inverse', FALSE),
-                          checkboxInput('execute_logx', 'log x', FALSE),
-                          checkboxInput('execute_logy', 'log y', FALSE),
-                          checkboxInput('execute_wl2energy', ' Wavelength \U02192 Energy', FALSE),
-                          checkboxInput('execute_energy2wl', 'Energy \U02192 Wavelength', FALSE),
-                          checkboxInput('execute_cumsum', 'Cumulative sum', FALSE),
-                          checkboxInput('execute_zeroy', 'Zero negative y', FALSE)
+                          checkboxInput("execute_inverse", "Inverse", FALSE),
+                          checkboxInput("execute_logx", "log x", FALSE),
+                          checkboxInput("execute_logy", "log y", FALSE),
+                          checkboxInput("execute_wl2energy", " Wavelength \U02192 Energy", FALSE),
+                          checkboxInput("execute_energy2wl", "Energy \U02192 Wavelength", FALSE),
+                          checkboxInput("execute_cumsum", "Cumulative sum", FALSE),
+                          checkboxInput("execute_zeroy", "Zero negative y", FALSE)
                           
 
                         )),
                         
                         column(8, wellPanel(
                           h2("Plot"),
-                          plotOutput("plot_transformation",
+                          plotOutput(outputId = "plot_transformation",
                                      dblclick = "plot_transformation_dblclick",
                                      brush = brushOpts(
                                        id = "plot_transformation_brush",
@@ -91,41 +103,68 @@ shinyUI(
                       
                       fluidRow(
                         
-                        column(5, wellPanel(
-                          selectInput("model_type", "Select a model", 
-                                      c("Linear Model" = "linear",
-                                        "Quadratic" = "quadratic",
-                                        "Cubic" = "cubic",
-                                        "Exponential decay" = "exp_dec", 
-                                        "Double exponential decay"  = "double_exp_dec",
-                                        "Gaussian" = "gaussian"
+                        column(4, wellPanel(
+                          h4("Set fitting function"),
+                          selectInput(inputId = "set_model_type", 
+                                      label = "", 
+                                      choices = c("Linear Model" = "linear",
+                                                  "Quadratic" = "quadratic",
+                                                  "Cubic" = "cubic",
+                                                  "Exponential decay" = "exp_dec", 
+                                                  "Double exponential decay"  = "double_exp_dec",
+                                                  "Gaussian" = "gaussian"
                                         ),
                                       selected = "linear"),
-                          uiOutput("model_formula"),
+                          uiOutput(outputId = "model_formula"),
                           br(),
                           h4("Set starting parameters"),
-                          uiOutput("coef_guess_ui"),
+                          uiOutput(outputId = "coef_guess_ui"),
+                          h4("Start fitting"),
+                          br(),
+                          actionButton(inputId = "fitButton", 
+                                       label = "Start fitting"),
                           fluidRow(
-                            column(6, checkboxInput("seeGuess", "See guess", FALSE)),
-                            column(6, numericInput("digits_fit", 
-                                                   label = "Digits for the fit", 
+                            column(4, checkboxInput(inputId = "see_guess", 
+                                                    label = "See guess", 
+                                                    value = FALSE)),
+                            column(8, numericInput(inputId = "set_digits_fit",
+                                                   label = "Digits for fit", 
                                                    value = 4, 
                                                    min = 1,
                                                    max = 12,
                                                    step = 1))
                           ), # end fluidRow
-                          actionButton("fitButton", "Fit")
-                      )),
-                      column(7, wellPanel(
+
+                          br(),
+                          h4("Download"),
+                          br(),
+                          h5("Download fitted values"),
+                          downloadButton(outputId = "download_Fit_table", 
+                                         label = "Download table"),
+                          br(),
+                          h5("Download figure"),
+                          fluidRow(
+                            column(5,
+                          selectInput(inputId = "set_output_format", 
+                                      label = "Select output format",
+                                      choices = c("pdf", "eps", "jpeg", "tiff", "png", "bmp", "svg"),
+                                      selected = "pdf"))),
+                          fluidRow(
+                            column(5,
+                          downloadButton(outputId = "download_Fit_plot", 
+                                         label = "Download fitting plot")))
+                          )), ## end column(4, ...)
+                            
+                      column(8, wellPanel(
                       plotOutput(
-                        "plot_fitting",
+                        outputId = "plot_fitting",
                         dblclick = "plot_fitting_dblclick",
                         brush = brushOpts(
                           id = "plot_fitting_brush",
                           resetOnNew = TRUE)
                       ),
-                      htmlOutput("fit_print")
-                      ))
+                      htmlOutput(outputId = "fit_print")
+                      )) #end column(8, ...),
                       ) # end fluidRow
                       
              ), # end Tab FITTING

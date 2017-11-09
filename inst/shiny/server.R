@@ -5,6 +5,29 @@ options(shiny.maxRequestSize = 200*1024^2)
 
 shinyServer(function(input, output, session) {
   
+  reset_reactiveValues <- function(){
+    
+    ranges$x <- ranges$y <- 
+    ranges$x_temp <- ranges$y_temp <- 
+    ranges$x_fitting <- ranges$y_fitting <- 
+    ranges$x_transformation <- ranges$y_transformation <-
+    ranges$fit <- NULL
+    
+    buttons$fit <- FALSE
+    
+    plot$fitting <- NULL
+    plot$transformation <- NULL
+    plot$plot <- NULL
+    plot$guess <- NULL
+    plot$newx <- NULL 
+    plot$fit <- NULL
+    plot$df <- NULL
+    plot$mod_form <- NULL
+    plot$save_PDF <- NULL
+    
+    df_reac$df_transformation <- NULL
+  }
+  
   
   #################################
   ## TAB 1: INPUT & PLOT
@@ -27,7 +50,9 @@ shinyServer(function(input, output, session) {
                          transformation = NULL,
                          newx = NULL, 
                          fit = NULL,
-                         df = NULL)
+                         df = NULL,
+                         mod_form = NULL,
+                         save_PDF = NULL)
   
   buttons <- reactiveValues(fit = NULL)
   
@@ -90,7 +115,10 @@ shinyServer(function(input, output, session) {
 
   })
   
-  ## check doubleklick
+  ################################
+  ## check doubleklick in tab DATA
+  ################################
+  
   observeEvent(input$plot_dblclick, {
     brush <- input$plot_brush
     if (!is.null(brush)) {
@@ -103,17 +131,21 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  observeEvent(input$plot_fitting_dblclick, {
-    brush <- input$plot_fitting_brush
-    if (!is.null(brush)) {
-      ranges$x_fitting <- c(brush$xmin, brush$xmax)
-      ranges$y_fitting <- c(brush$ymin, brush$ymax)
-      
-    } else {
-      ranges$x_fiting <- NULL
-      ranges$y_fitting <- NULL
-    }
-  })
+  ################################
+  ## check doubleklick in tab 
+  ################################
+  
+  # observeEvent(input$plot_fitting_dblclick, {
+  #   brush <- input$plot_fitting_brush
+  #   if (!is.null(brush)) {
+  #     ranges$x_fitting <- c(brush$xmin, brush$xmax)
+  #     ranges$y_fitting <- c(brush$ymin, brush$ymax)
+  # 
+  #   } else {
+  #     ranges$x_fiting <- NULL
+  #     ranges$y_fitting <- NULL
+  #   }
+  # })
   
   observeEvent(input$plot_transformation_dblclick, {
     brush <- input$plot_transformation_brush
@@ -128,7 +160,7 @@ shinyServer(function(input, output, session) {
   })
   
   ##########################
-  ## OUTPUT
+  ## OUTPUT METADATA
   ##########################
   
   output$dataset_metadata <- shiny::renderDataTable({
@@ -151,7 +183,10 @@ shinyServer(function(input, output, session) {
 
   })
   
-  ## create dropdown list with n-elements (n = number of blocks)
+  ##########################
+  ## create dropdown list with n-elements (n = number of blocks) -------
+  ##########################
+  
   output$block_ui <- renderUI({
     if (is.null(data())) { return() }
     
@@ -172,13 +207,23 @@ shinyServer(function(input, output, session) {
   
   # if block is changed, remove fit
   observeEvent(input$blocks, {
-
-        buttons$fit <- FALSE
-        plot$fitting <- NULL
-        plot$transformation <- NULL
+    
+    reset_reactiveValues()
 
   })
+  
+  observeEvent(input$file, {
+    
+    reset_reactiveValues()
+    
+  })
 
+  observeEvent(input$URL, {
+    
+    reset_reactiveValues()
+    
+  })
+  
   #create dropdown list with n-elements (n = number of columns in one block)
   output$column_ui <-   renderUI({
     if (is.null(data()) || is.null(blk_nr())) { return() }
@@ -194,6 +239,10 @@ shinyServer(function(input, output, session) {
                   selected = 2)
     ) ## end list
   })
+  
+  #################################
+  ## render plot in tab "DATA" ----
+  #################################
   
   output$plot <- renderPlot({
     if(!is.null(data())){
@@ -228,6 +277,10 @@ shinyServer(function(input, output, session) {
       
     }
   })
+  
+  #######################################
+  ## create downloadbutton for input data
+  #######################################
   
   output$download_Data <- downloadHandler(
     filename = function() { 
@@ -274,8 +327,8 @@ shinyServer(function(input, output, session) {
   #################################
   
   output$plot_transformation <- output$plot_fitting <- renderPlot({
-      
-      if(!is.null(data())){
+    
+    if(!is.null(data())){
         
         col_names <- colnames(data()$dataset[[blk_nr()]]$data_block)
         x_lab <- col_names[x_axis()]
@@ -349,8 +402,8 @@ shinyServer(function(input, output, session) {
         ## basic plot
         df <- data.frame(x = x, y = y)
         
-        ## save as reactive value for fitting panel
-        df_reac$df_transformation <- df
+        ## make copy of df for fitting
+        df_transformation <- df
         
         gg_transformation <- ggplot(data = df , aes(x = x, y = y)) +
           geom_point() +
@@ -361,13 +414,20 @@ shinyServer(function(input, output, session) {
         if(!is.null(ranges$x_transformation)){
           
           gg_transformation <- gg_transformation + xlim(ranges$x_transformation)
+          df_transformation <- df_transformation[which(df_transformation$x >= ranges$x_transformation[1] &
+                                                       df_transformation$x <= ranges$x_transformation[2]),]
+          
         }
         if(!is.null(ranges$y_transformation)){
           
           gg_transformation <- gg_transformation + ylim(ranges$y_transformation)
+          df_transformation <- df_transformation[which(df_transformation$y >= ranges$y_transformation[1] &
+                                                       df_transformation$y <= ranges$y_transformation[2]),]
+          
         }
         
         plot$transformation <- gg_transformation
+        df_reac$df_transformation <- df_transformation
         
         return(gg_transformation)
 
@@ -437,7 +497,7 @@ shinyServer(function(input, output, session) {
     
     ## plot output fitting
     model_func <- reactive({
-     func <- switch(input$model_type,
+     func <- switch(input$set_model_type,
                            "linear" = linear_fit,
                            "quadratic" = quadratic_fit,
                            "cubic" = cubic_fit,
@@ -450,7 +510,7 @@ shinyServer(function(input, output, session) {
 
     
     model_coefs <- reactive({
-        switch(input$model_type,
+        switch(input$set_model_type,
                             "linear" = list("a" = input$a, "y_0" = input$y_0),
                             "quadratic" = list("a0" = input$a0, "a1" = input$a1, "a2" = input$a2),
                             "cubic" = list("a0" = input$a0, "a1" = input$a1, "a2" = input$a2, "a3" = input$a3),
@@ -475,7 +535,7 @@ shinyServer(function(input, output, session) {
       
     observeEvent(input$fitButton, {
       
-      mod_form <- switch(input$model_type,
+      mod_form <- switch(input$set_model_type,
                            "linear" = formula(y~a*x+y_0),
                            "quadratic" = formula(y~a0 + a1*x + a2*x^2 ),
                            "cubic" = formula(y~a0 + a1*x + a2*x^2 + a3*x^3),
@@ -483,7 +543,8 @@ shinyServer(function(input, output, session) {
                            "double_exp_dec" = formula(y ~ a*(1-exp(-x/t)) + exp(-x/t)),
                            "gaussian" = formula(y ~ a * exp((- 4 *log(2) * (x - mu)^2)/w^2)))
         
-        
+      ## save as reactive value
+      plot$mod_form <- mod_form  
         
       fit <- fit_model(mod_form, start=model_coefs(), dat = df_reac$df_transformation)
       plot$fit <- fit
@@ -494,7 +555,7 @@ shinyServer(function(input, output, session) {
         output$fit_print_caption <- renderText("")
         output$fit_print <- renderText(outmsg)
       } else {
-        output$fit_print <- renderTable({broom::tidy(fit)}, rownames = FALSE, digits = input$digits_fit)
+        output$fit_print <- renderTable({broom::tidy(fit)}, rownames = FALSE, digits = input$set_digits_fit)
       }
       
       buttons$fit <- TRUE
@@ -510,7 +571,7 @@ shinyServer(function(input, output, session) {
         
           df_guess <- data.frame(x = plot$newx, y = guess())
         
-          if(input$seeGuess)
+          if(input$see_guess)
             plot$guess <- geom_line(data = df_guess, aes(x,y), colour = "red")
           else
             plot$guess <- NULL
@@ -528,7 +589,9 @@ shinyServer(function(input, output, session) {
 
           }
           
-          make_fit_plot(plot$plot, plot$guess, plot$transformation, plot$fitting)
+          plot$save_PDF <- make_fit_plot(plot$plot, plot$guess, plot$transformation, plot$fitting) 
+          
+          return(make_fit_plot(plot$plot, plot$guess, plot$transformation, plot$fitting))
           
       } ## end if(length(plot$newx == guess())){
 
@@ -547,12 +610,58 @@ shinyServer(function(input, output, session) {
       }
       
     }
+    
+    
+    ####################################
+    ## Download Fitting parameters -----
+    ###################################
+    
+    
+    output$download_Fit_table <- downloadHandler(
+      filename = function() { 
+        paste0(input$file, "_Fitting_parameters_", Sys.Date(), ".csv") 
+      },
+      content = function(file) {
+        
+        write.table(data.frame("# Exported by rxylibShiny", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE)
+        
+        write.table(data.frame("# Used formula", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+        
+        write.table(data.frame(deparse(plot$mod_form)), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+        write.table(data.frame("\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+        
+        write.table(data.frame("# Fitting parameter", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+
+        write.table(broom::tidy(plot$fit), file, col.names = TRUE, row.names = FALSE, quote = FALSE, append = TRUE)
+        write.table(data.frame("\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+        
+        write.table(data.frame("# Original values (x,y), fitted values and residuals", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+
+        write.table(broom::augment(plot$fit), file, col.names = TRUE, row.names = FALSE, quote = FALSE, append = TRUE)
+        
+        })
+    
+    ############################
+    ## Download Fit as PDF -----
+    ############################
+    
+    output$download_Fit_plot <- downloadHandler(
+      filename = function() { 
+        paste0(input$file, "_Fitting_plot_", Sys.Date(), ".", input$set_output_format) 
+      },
+      content = function(file) {
+        
+        ggsave(file, plot = plot$save_PDF, device = as.character(input$set_output_format), dpi = 300)
+        
+      })
+        
+        
 
   output$model_formula <- renderUI({
-    if (is.null(input$model_type)) { return() }
-    # Depending on input$model_type, we'll generate a different
+    if (is.null(input$set_model_type)) { return() }
+    # Depending on input$set_model_type, we'll generate a different
     # UI component and send it to the client.
-    switch(input$model_type,
+    switch(input$set_model_type,
            "linear" = withMathJax(helpText("$$y = a \\cdot x + y_0$$")),
            "quadratic" = withMathJax(helpText("$$y = a_0 + a_1 \\cdot x + a_2 \\cdot x^2$$")),
            "cubic" = withMathJax(helpText("$$y = a_0 + a_1 \\cdot x + a_2 \\cdot x^2 + a_3 \\cdot x^3$$")),
@@ -563,10 +672,10 @@ shinyServer(function(input, output, session) {
   }) ##end output$model_formula
   
   output$coef_guess_ui <- renderUI({
-    if (is.null(input$model_type)) { return() }
-    # Depending on input$model_type, we'll generate a different
+    if (is.null(input$set_model_type)) { return() }
+    # Depending on input$set_model_type, we'll generate a different
     # UI component and send it to the client.
-    switch(input$model_type,
+    switch(input$set_model_type,
            "linear" = list(numericInput("a", withMathJax(helpText("$$a$$")), value = 1),
                            numericInput("y_0", withMathJax(helpText("$$y_0$$")), value = 0)),
            

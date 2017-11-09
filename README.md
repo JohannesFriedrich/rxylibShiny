@@ -9,13 +9,19 @@
 It is possible to load different file formats and see the x-y plot. You can zoom in, investigate details in your data and fit the data.
 Another feature is the transformation of data, e.g. translating wavelength spectra into energy sepctra or normalisations, ...
 
-Until now the plot and transformation panel is fully supported. This is not the case for the fitting feature. This will be extended in the future.
+## Some Highlights:
+
+* Interactive plots
+* Build-in transformations
+* Fit data to different functions
+* Download converted data as *.csv file 
+* Download fitted values and figures as pdf, eps, jpeg, ...
 
 ## Impressions
 
 ### Online:
 
-[App](https://johnsenfr.shinyapps.io/rxylib_shiny/)
+[Click here to get access to the online version of rxylib Shiny](https://johnsenfr.shinyapps.io/rxylib_shiny/)
 
 ### Data panel:
 
@@ -48,7 +54,7 @@ rxylibShiny::run_rxylib()
 ## To Do
 
 * Add fitting functions (on request)
-* Add URL input
+* Add fitting parameter download
 * Add copy-paste input
 * Add possibility to plot multiple blocks
 
