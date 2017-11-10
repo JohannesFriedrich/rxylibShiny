@@ -25,11 +25,16 @@ Another feature is the transformation of data, e.g. translating wavelength spect
 
 ### Data panel:
 
-![](img/screenshot.jpg)
+![](img/screenshot_data_panel.jpg)
 
 ### Transformation panel:
 
-![](img/screenshot2.jpg)
+![](img/screenshot_transform_panel.jpg)
+
+### Fitting panel:
+
+![](img/screenshot_fitting_panel.jpg)
+
 
 ## Installation and usage
 

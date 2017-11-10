@@ -5,8 +5,8 @@ account: johnsenfr
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 204915
-bundleId: 1068017
+bundleId: 1069083
 url: https://johnsenfr.shinyapps.io/rxylib_shiny/
-when: 1510272185.17281
+when: 1510331966.97769
 asMultiple: FALSE
 asStatic: FALSE
