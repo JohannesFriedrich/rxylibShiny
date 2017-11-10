@@ -121,8 +121,10 @@ shinyUI(
                           uiOutput(outputId = "coef_guess_ui"),
                           h4("Start fitting"),
                           br(),
-                          actionButton(inputId = "fitButton", 
-                                       label = "Start fitting"),
+                          actionButton(inputId = "start_fit", 
+                                       label = "Start fit"),
+                          actionButton(inputId = "remove_fit",
+                                       label = "Remove fit"),
                           fluidRow(
                             column(4, checkboxInput(inputId = "see_guess", 
                                                     label = "See guess", 
@@ -156,6 +158,7 @@ shinyUI(
                           )), ## end column(4, ...)
                             
                       column(8, wellPanel(
+                        h2("Plot"),
                       plotOutput(
                         outputId = "plot_fitting",
                         dblclick = "plot_fitting_dblclick",

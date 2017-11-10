@@ -28,6 +28,13 @@ shinyServer(function(input, output, session) {
     df_reac$df_transformation <- NULL
   }
   
+  remove_fit <- function(){
+    
+    buttons$fit <- FALSE
+    plot$fitting <- NULL
+    
+  }
+  
   
   #################################
   ## TAB 1: INPUT & PLOT
@@ -56,7 +63,8 @@ shinyServer(function(input, output, session) {
   
   buttons <- reactiveValues(fit = NULL)
   
-  df_reac <- reactiveValues(df_transformation = NULL)
+  df_reac <- reactiveValues(df_transformation = NULL,
+                            df_basic_plot = NULL)
   
   names <- reactiveValues(input_name = NULL)
   
@@ -262,6 +270,9 @@ shinyServer(function(input, output, session) {
       ylim <- ranges$y
 
       df <- data.frame(x = x, y = y)
+      
+      df_reac$df_basic_plot <- df
+      
       gg_plot <- ggplot(data = df , aes(x = x, y = y)) +
         geom_point() +
         xlab(x_lab) +
@@ -334,13 +345,14 @@ shinyServer(function(input, output, session) {
   output$plot_transformation <- output$plot_fitting <- renderPlot({
     
     if(!is.null(data())){
-        
+      
         col_names <- colnames(data()$dataset[[blk_nr()]]$data_block)
         x_lab <- col_names[x_axis()]
         y_lab <- col_names[y_axis()]
         x <- data()$dataset[[blk_nr()]]$data_block[,x_axis()]
         y <- data()$dataset[[blk_nr()]]$data_block[,y_axis()]
         
+        remove_fit()
         
         switch(input$execute_normalisation,
                
@@ -494,8 +506,10 @@ shinyServer(function(input, output, session) {
     ### create modell function ----
  
     fit_model <- function(mod_form, start, dat){
-      fit <- try(minpack.lm::nlsLM(formula = mod_form, data=dat, start=start,
-                     control = list(minFactor=1/100000, maxiter=500)), 
+      fit <- try(minpack.lm::nlsLM(formula = mod_form, 
+                                   data=dat, 
+                                   start=start,
+                                  control = list(minFactor=1/100000, maxiter=500)), 
                  silent=T)
     }
     
@@ -543,7 +557,7 @@ shinyServer(function(input, output, session) {
     ## observe fit button ----
     ########
     
-    observeEvent(input$fitButton, {
+    observeEvent(input$start_fit, {
       
       mod_form <- switch(input$set_model_type,
                            "linear" = formula(y~a*x+y_0),
@@ -555,8 +569,13 @@ shinyServer(function(input, output, session) {
         
       ## save as reactive value
       plot$mod_form <- mod_form  
+      
+      if(!is.null(df_reac$df_transformation)){
+        fit <- fit_model(mod_form, start=model_coefs(), dat = df_reac$df_transformation)
+      } else {
+        fit <- fit_model(mod_form, start=model_coefs(), dat = df_reac$df_basic_plot)
+      }
         
-      fit <- fit_model(mod_form, start=model_coefs(), dat = df_reac$df_transformation)
       plot$fit <- fit
         
       if(inherits(fit, "try-error")){ 
@@ -571,7 +590,14 @@ shinyServer(function(input, output, session) {
       buttons$fit <- TRUE
       
       
-    }) ## end if fitButton
+    }) ## end observe(start_fit)
+    
+    observeEvent(input$remove_fit, {
+      remove_fit()
+    })
+    
+
+    
     
     ################################
     ### plot output tab FITTING ----
@@ -582,7 +608,7 @@ shinyServer(function(input, output, session) {
       if(!is.null(data())){
         
         if(!is.null(plot$transformation)){
-        
+          
         if(length(plot$newx == guess())){
         
           df_guess <- data.frame(x = plot$newx, y = guess())
@@ -612,7 +638,36 @@ shinyServer(function(input, output, session) {
       } ## end if(length(plot$newx == guess())){
 
     } else { ## end if !is.null(data())
-        return(plot$plot)
+        
+      if(length(plot$newx == guess())){
+        
+        df_guess <- data.frame(x = plot$newx, y = guess())
+        
+        if(input$see_guess)
+          plot$guess <- geom_line(data = df_guess, aes(x,y), colour = "red")
+        else
+          plot$guess <- NULL
+        
+        if(buttons$fit){
+          
+          if(inherits(plot$fit, "try-error")){
+            plot$fitting <- NULL
+          } else {
+            plot$fitting <- geom_line(data = data.frame(x = df_reac$df_basic_plot$x, 
+                                                        y = fitted(plot$fit)), 
+                                      aes(x,y), 
+                                      colour = "green")
+          }
+          
+        }
+        
+        plot$save_PDF <- make_fit_plot(plot$plot, plot$guess, plot$transformation, plot$fitting) 
+        
+        return(make_fit_plot(plot$plot, plot$guess, plot$transformation, plot$fitting))
+        
+      } ## end if(length(plot$newx == guess())){
+      
+      
     }
     } else { ## end if !is.null(data())
       return(NULL)
