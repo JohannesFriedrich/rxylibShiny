@@ -388,9 +388,6 @@ shinyServer(function(input, output, session) {
         if(input$execute_zeroy){
           y <- vapply(y, FUN = function(Y) {max(0,Y)}, FUN.VALUE = 1)
         }
-        
-
-        
 
         ## check if logarithmic axis
         if(input$execute_logx & !input$execute_logy){
@@ -444,7 +441,7 @@ shinyServer(function(input, output, session) {
   ## TAB 3: FITTING PANEL
   #################################
   
-  ## Function definitons ##
+  ## Function definitons ----
   
     linear_fit <- function(model_coefs, newx){
       a <- model_coefs$a
@@ -493,6 +490,8 @@ shinyServer(function(input, output, session) {
       out <- a * exp((- 4 *log(2) * (newx - mu)^2)/w^2)
       return(out)
     }
+    
+    ### create modell function ----
  
     fit_model <- function(mod_form, start, dat){
       fit <- try(minpack.lm::nlsLM(formula = mod_form, data=dat, start=start,
@@ -500,7 +499,6 @@ shinyServer(function(input, output, session) {
                  silent=T)
     }
     
-    ## plot output fitting
     model_func <- reactive({
      func <- switch(input$set_model_type,
                            "linear" = linear_fit,
@@ -513,6 +511,7 @@ shinyServer(function(input, output, session) {
      return(list(func = func))
     })
 
+    ## choose model parameters ----
     
     model_coefs <- reactive({
         switch(input$set_model_type,
@@ -523,6 +522,8 @@ shinyServer(function(input, output, session) {
                             "double_exp_dec" = list("a" = input$a, "t" = input$t),
                             "gaussian" = list("a" = input$a, "w" = input$w, "mu" = input$mu))
     })
+    
+    ## create guess ----
     
     guess <- reactive({
 
@@ -537,7 +538,11 @@ shinyServer(function(input, output, session) {
       guess <- model_func()$func(model_coefs(), plot$newx)
       
     })
-      
+    
+    #########
+    ## observe fit button ----
+    ########
+    
     observeEvent(input$fitButton, {
       
       mod_form <- switch(input$set_model_type,
@@ -568,9 +573,15 @@ shinyServer(function(input, output, session) {
       
     }) ## end if fitButton
     
+    ################################
+    ### plot output tab FITTING ----
+    ################################
+    
     output$plot_fitting <- renderPlot({
         
       if(!is.null(data())){
+        
+        if(!is.null(plot$transformation)){
         
         if(length(plot$newx == guess())){
         
@@ -601,10 +612,16 @@ shinyServer(function(input, output, session) {
       } ## end if(length(plot$newx == guess())){
 
     } else { ## end if !is.null(data())
-        return(NULL)
+        return(plot$plot)
+    }
+    } else { ## end if !is.null(data())
+      return(NULL)
+      
     }
   }) ## end renderPlot()
     
+    
+    ## helper function to combine all plots
     
     make_fit_plot <- function(plot_plot, plot_guess, plot_transformation, plot_fitting){
       
@@ -616,11 +633,9 @@ shinyServer(function(input, output, session) {
       
     }
     
-    
     ####################################
     ## Download Fitting parameters -----
-    ###################################
-    
+    ####################################
     
     output$download_Fit_table <- downloadHandler(
       filename = function() { 
@@ -661,26 +676,32 @@ shinyServer(function(input, output, session) {
       })
         
         
-
-  output$model_formula <- renderUI({
-    if (is.null(input$set_model_type)) { return() }
-    # Depending on input$set_model_type, we'll generate a different
-    # UI component and send it to the client.
-    switch(input$set_model_type,
+    ###############################################
+    ## create UI for setting model parameters ----
+    ##############################################
+    
+    
+    output$model_formula <- renderUI({
+      if (is.null(input$set_model_type)) { return() }
+      # Depending on input$set_model_type, we'll generate a different
+      # UI component and send it to the client.
+      
+      switch(input$set_model_type,
            "linear" = withMathJax(helpText("$$y = a \\cdot x + y_0$$")),
            "quadratic" = withMathJax(helpText("$$y = a_0 + a_1 \\cdot x + a_2 \\cdot x^2$$")),
            "cubic" = withMathJax(helpText("$$y = a_0 + a_1 \\cdot x + a_2 \\cdot x^2 + a_3 \\cdot x^3$$")),
            "exp_dec" = withMathJax(helpText("$$y = a \\cdot \\exp\\left(-\\frac{x}{t}\\right)$$")),
            "double_exp_dec" = withMathJax(helpText("$$y = a \\cdot \\left(1 - \\exp\\left(-\\frac{x}{t}\\right)\\right)+\\exp\\left(-\\frac{x}{t}\\right)$$")),
            "gaussian" = withMathJax(helpText("$$y = a \\cdot \\exp\\left(-\\frac{4 \\cdot \\ln(2) \\cdot \\left(x-\\mu\\right)^2}{w^2}\\right)$$"))
-    )
-  }) ##end output$model_formula
+      ) ## end switch
+    }) ## end output$model_formula
   
-  output$coef_guess_ui <- renderUI({
-    if (is.null(input$set_model_type)) { return() }
-    # Depending on input$set_model_type, we'll generate a different
-    # UI component and send it to the client.
-    switch(input$set_model_type,
+    output$coef_guess_ui <- renderUI({
+      if (is.null(input$set_model_type)) { return() }
+      # Depending on input$set_model_type, we'll generate a different
+      # UI component and send it to the client.
+      
+      switch(input$set_model_type,
            "linear" = list(numericInput("a", withMathJax(helpText("$$a$$")), value = 1),
                            numericInput("y_0", withMathJax(helpText("$$y_0$$")), value = 0)),
            
@@ -701,8 +722,8 @@ shinyServer(function(input, output, session) {
            "gaussian" = list(numericInput("a", withMathJax(helpText("$$a$$")), value = 1),
                              numericInput("w", withMathJax(helpText("$$w \\left(FWHM\\right)$$")), value = 1),
                              numericInput("mu", withMathJax(helpText("$$\\mu$$")), value = 0))
-    )
-  }) ##end output$coef_gues_ui
+      ) ## end switch
+    }) ## end output$coef_gues_ui
   
-})
+}) ## end  shinyServer
 
