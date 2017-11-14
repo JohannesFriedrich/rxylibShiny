@@ -35,6 +35,11 @@ shinyServer(function(input, output, session) {
     
   }
   
+  theme <- theme(axis.text=element_text(size = 16),
+                 axis.title=element_text(size = 16, face = "bold"),
+                 legend.text=element_text(size = 14),
+                 legend.title = element_text(size = 14, face = "bold"))
+  
   
   #################################
   ## TAB 1: INPUT & PLOT
@@ -276,7 +281,8 @@ shinyServer(function(input, output, session) {
       gg_plot <- ggplot(data = df , aes(x = x, y = y)) +
         geom_point() +
         xlab(x_lab) +
-        ylab(y_lab)
+        ylab(y_lab) +
+        theme
 
       if(!is.null(ranges$x)){
 
@@ -303,40 +309,32 @@ shinyServer(function(input, output, session) {
       paste0(names$input_name, "_", Sys.Date(), ".csv") 
       },
     content = function(file) {
-
+      
+      writeLines("# Exported by rxylibShiny", file)
+          
+      if(input$download_Meta & nrow(data()$metadata) != 0){
+        write.table(data.frame("# Metadata", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+        write.table(data.frame(paste0("# ", data()$metadata[,1]), data()$metadata[,2]), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+        write.table(data.frame("","\n" ), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+      }
+      
       for(i in 1:length(data()$dataset)){
-        if(i ==1) {
-          write.table(data.frame("# Exported by rxylibShiny", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE)
-          if(input$download_Meta){
-            write.table(data.frame("# Metadata", ""), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
-            write.table(data.frame(paste0("# ", data()$metadata[,1]), data()$metadata[,2]), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
-          }
 
-          if(is.null(names(data()$dataset)) || names(data()$dataset) == ""){
-            write.table(data.frame("## BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
-          } else {
-            write.table(data.frame(paste("#", names(data()$dataset)[i]), ""), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
-          }
-          
-          write.table(data()$dataset[[i]]$data_block, file, row.names = FALSE, append = TRUE, sep = ",")
-
+        if(is.null(names(data()$dataset)) || names(data()$dataset) == ""){
+          write.table(data.frame("# BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
         } else {
-          if(is.null(names(data()$dataset)) || names(data()$dataset) == ""){
-            write.table(data.frame("## BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
-          } else {
-            write.table(data.frame(paste("#", names(data()$dataset)[i]), ""), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
-          }
-          if(input$download_Meta){
-            write.table(data.frame(paste0("# ", data()$dataset[[i]]$metadata_block[,1]), data()$dataset[[i]]$metadata_block[,2]), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
-          }
-          
-          
-          write.table(data()$dataset[[i]]$data_block, file, col.names = FALSE, row.names = FALSE, append = TRUE, sep = ",", quote = FALSE)
+          write.table(data.frame(paste("#", names(data()$dataset)[i]), ""), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
+        }
+        
+        if(input$download_Meta & nrow(data()$dataset[[i]]$metadata_block) != 0){
+          write.table(data.frame(paste0("## ", data()$dataset[[i]]$metadata_block[,1]), data()$dataset[[i]]$metadata_block[,2]), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+          write.table(data.frame("","\n" ), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
         }
           
+        write.table(data()$dataset[[i]]$data_block, file, row.names = FALSE, append = TRUE, sep = ",")
       } ## end for loop
-    }
-  ) ## end downloadHandler
+    } ## end content = function(file)
+  ) ## end downloadHandler()
   
   #################################
   ## TAB 2: TRANSFORMATION
@@ -422,7 +420,8 @@ shinyServer(function(input, output, session) {
         gg_transformation <- ggplot(data = df , aes(x = x, y = y)) +
           geom_point() +
           xlab(x_lab) + 
-          ylab(y_lab) 
+          ylab(y_lab) +
+          theme
         
         
         if(!is.null(ranges$x_transformation)){
@@ -509,7 +508,7 @@ shinyServer(function(input, output, session) {
       fit <- try(minpack.lm::nlsLM(formula = mod_form, 
                                    data=dat, 
                                    start=start,
-                                  control = list(minFactor=1/100000, maxiter=500)), 
+                                   control = list(minFactor=1/100000, maxiter=500)), 
                  silent=T)
     }
     
@@ -570,27 +569,33 @@ shinyServer(function(input, output, session) {
       ## save as reactive value
       plot$mod_form <- mod_form  
       
+      ## check if a transformation was done. If not, the basic plot from panel DATA will be fitted
       if(!is.null(df_reac$df_transformation)){
-        fit <- fit_model(mod_form, start=model_coefs(), dat = df_reac$df_transformation)
+        fit <- fit_model(mod_form, 
+                         start=model_coefs(), 
+                         dat = df_reac$df_transformation)
       } else {
-        fit <- fit_model(mod_form, start=model_coefs(), dat = df_reac$df_basic_plot)
+        fit <- fit_model(mod_form, 
+                         start=model_coefs(), 
+                         dat = df_reac$df_basic_plot)
       }
         
       plot$fit <- fit
         
       if(inherits(fit, "try-error")){ 
         outmsg <- paste0("The fit failed.<br>", 
-                           "The error was: <code>", attr(fit, "condition")$message, "</code><br>")
+                         "The error was: <code>", attr(fit, "condition")$message, "</code><br>")
         output$fit_print_caption <- renderText("")
-        output$fit_print <- renderText(outmsg)
+        output$fit_print <- renderText(expr = outmsg)
       } else {
-        output$fit_print <- renderTable({broom::tidy(fit)}, rownames = FALSE, digits = input$set_digits_fit)
+        output$fit_print <- renderTable(expr = {broom::tidy(fit)}, 
+                                        rownames = FALSE, 
+                                        digits = input$set_digits_fit)
       }
       
       buttons$fit <- TRUE
       
-      
-    }) ## end observe(start_fit)
+      }) ## end observe(start_fit)
     
     observeEvent(input$remove_fit, {
       remove_fit()
@@ -700,19 +705,15 @@ shinyServer(function(input, output, session) {
         
         write.table(data.frame("# Exported by rxylibShiny", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE)
         
-        write.table(data.frame("# Used formula", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+        write.table(data.frame(paste("# Used formula:", deparse(plot$mod_form)), "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
         
-        write.table(data.frame(deparse(plot$mod_form)), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
-        write.table(data.frame("\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
-        
-        write.table(data.frame("# Fitting parameter", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+        write.table(data.frame("# Fitting parameters", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
 
-        write.table(broom::tidy(plot$fit), file, col.names = TRUE, row.names = FALSE, quote = FALSE, append = TRUE)
-        write.table(data.frame("\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
-        
-        write.table(data.frame("# Original values (x,y), fitted values and residuals", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+        write.table(broom::tidy(plot$fit), file, sep = ",", col.names = TRUE, row.names = FALSE, quote = FALSE, append = TRUE)
 
-        write.table(broom::augment(plot$fit), file, col.names = TRUE, row.names = FALSE, quote = FALSE, append = TRUE)
+        write.table(data.frame("\n# Original values (x & y) & fitted values & residuals", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
+
+        write.table(broom::augment(plot$fit), file, col.names = TRUE, row.names = FALSE, quote = FALSE, append = TRUE, sep = ",")
         
         })
     
