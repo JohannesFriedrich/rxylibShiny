@@ -1,0 +1,4 @@
+Name: Start rxylib Shiny
+Description: Starts the shiny app rxylib Shiny
+Binding: run_rxylib
+Interactive: true
