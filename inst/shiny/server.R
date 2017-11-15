@@ -66,7 +66,8 @@ shinyServer(function(input, output, session) {
                          mod_form = NULL,
                          save_PDF = NULL)
   
-  buttons <- reactiveValues(fit = NULL)
+  buttons <- reactiveValues(fit = NULL,
+                            table = FALSE)
   
   df_reac <- reactiveValues(df_transformation = NULL,
                             df_basic_plot = NULL)
@@ -81,6 +82,50 @@ shinyServer(function(input, output, session) {
 
     input_file <- input$file
     input_URL <- input$URL
+    buttons$table <- input_table <- input$table 
+    
+      if(buttons$table){
+      
+      df_tmp <- input$paste_table
+      
+      row_names <-  as.list(as.character(seq_len(length(df_tmp$data))))
+      
+      df_tmp$params$rRowHeaders <- row_names
+      df_tmp$params$rowHeaders <- row_names
+      df_tmp$params$rDataDim <- as.list(c(length(row_names),
+                                          length(df_tmp$params$columns)))
+      
+      if (df_tmp$changes$event == "afterRemoveRow")
+        df_tmp$changes$event <- "afterChange"
+      
+      if (!is.null(hot_to_r(df_tmp))){
+        
+        df_matrix_data <- as.matrix(hot_to_r(df_tmp), ncol = 2)
+        colnames(df_matrix_data) <- c("x", "y")
+                                    
+
+        table_temp <- list(
+          dataset = list(
+            list(data_block = df_matrix_data,
+                metadata_block = data.frame(key = character(0),
+                                             value = character(0)))),
+          metadata = data.frame(key = character(0),
+                                value = character(0))
+        )
+
+        attributes(table_temp) <- list(
+          names = c("dataset", "metadata"),
+          format_name = character(0),
+          class = "rxylib"
+        )
+        return(table_temp)
+      
+      } else {
+        return(NULL)
+      }
+      
+      }
+    
 
     if (is.null(input_file) & input_URL == ""){
 
@@ -104,6 +149,15 @@ shinyServer(function(input, output, session) {
     }
 
   })
+  
+  output$paste_table <- renderRHandsontable({
+    rhandsontable(data = data.frame(0, 0),
+                  height = 300,
+                  colHeaders = c("x", "y"),
+                  rowHeaders = NULL)
+  })
+
+
 
   
   x_axis <- reactive({

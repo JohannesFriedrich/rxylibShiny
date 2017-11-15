@@ -12,6 +12,7 @@ Another feature is the transformation of data, e.g. translating wavelength spect
 ## Some Highlights:
 
 * Interactive plots
+* Copy-paste your data into the application
 * Build-in transformations
 * Fit data to different functions
 * Download converted data as *.csv file 
