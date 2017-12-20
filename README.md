@@ -60,8 +60,6 @@ rxylibShiny::run_rxylib()
 ## To Do
 
 * Add fitting functions (on request)
-* Add fitting parameter download
-* Add copy-paste input
 * Add possibility to plot multiple blocks
 
 ## License

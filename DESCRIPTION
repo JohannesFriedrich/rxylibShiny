@@ -2,11 +2,12 @@ Package: rxylibShiny
 Type: Package
 Title: Shiny Applications for the R Package 'rxylib'
 Version: 0.0.1
-Date: 2017-11-10
+Date: 2017-12-20
 Author: Johannes Friedrich [aut, cre],
         rxylib Team [ctb]
 Authors@R: c(
     person("Johannes", "Friedrich", role = c("aut", "cre"), email = "Johannes.Friedrich@uni-bayreuth.de"),
+    person("Sebastian Kreutzer", role = c("aut")), 
     person(family = "rxylib Team", role = c("ctb"))
     )
 Maintainer: Johannes Friedrich <Johannes.Friedrich@uni-bayreuth.de>
@@ -16,7 +17,7 @@ Depends:
     R (>= 3.3.2)
 Imports:
     shiny (>= 1.0.5),
-    rxylib (>= 0.2.0),
+    rxylib (>= 0.2.1),
     ggplot2 (>= 2.2.1),
     minpack.lm (>= 1.2-1),
     broom (>= 0.4.2)
