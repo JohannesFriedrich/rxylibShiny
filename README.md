@@ -24,6 +24,10 @@ Another feature is the transformation of data, e.g. translating wavelength spect
 
 [Click here to get access to the online version of rxylib Shiny](https://johnsenfr.shinyapps.io/rxylib_shiny/)
 
+### Example: Fitting x-y data to linear model
+
+![](img/rxylibShiny_example.gif)
+
 ### Data panel:
 
 ![](img/screenshot_data_panel.jpg)
