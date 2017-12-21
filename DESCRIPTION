@@ -2,8 +2,9 @@ Package: rxylibShiny
 Type: Package
 Title: Shiny Applications for the R Package 'rxylib'
 Version: 0.0.1
-Date: 2017-12-20
+Date: 2017-12-21
 Author: Johannes Friedrich [aut, cre],
+        Sebastian Kreutzer [aut],
         rxylib Team [ctb]
 Authors@R: c(
     person("Johannes", "Friedrich", role = c("aut", "cre"), email = "Johannes.Friedrich@uni-bayreuth.de"),
