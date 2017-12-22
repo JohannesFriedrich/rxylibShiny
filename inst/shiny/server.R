@@ -35,9 +35,9 @@ shinyServer(function(input, output, session) {
 
   }
 
-  theme <- theme(axis.text=element_text(size = 16),
-                 axis.title=element_text(size = 16, face = "bold"),
-                 legend.text=element_text(size = 14),
+  theme_update(axis.text = element_text(size = 16),
+                 axis.title = element_text(size = 16, face = "bold"),
+                 legend.text = element_text(size = 14),
                  legend.title = element_text(size = 14, face = "bold"))
 
 
@@ -84,7 +84,7 @@ shinyServer(function(input, output, session) {
     input_URL <- input$URL
     buttons$table <- input_table <- input$table
 
-      if(buttons$table){
+      if (buttons$table) {
 
       df_tmp <- input$paste_table
 
@@ -98,7 +98,7 @@ shinyServer(function(input, output, session) {
       if (df_tmp$changes$event == "afterRemoveRow")
         df_tmp$changes$event <- "afterChange"
 
-      if (!is.null(hot_to_r(df_tmp))){
+      if (!is.null(hot_to_r(df_tmp))) {
 
         df_matrix_data <- as.matrix(hot_to_r(df_tmp), ncol = 2)
         colnames(df_matrix_data) <- c("x", "y")
@@ -127,18 +127,18 @@ shinyServer(function(input, output, session) {
       }
 
 
-    if (is.null(input_file) & input_URL == ""){
+    if (is.null(input_file) & input_URL == "") {
 
       return(NULL)
 
-    } else if(!is.null(input_file)){ # input is file
+    } else if (!is.null(input_file)) { # input is file
 
       names$input_name <- input_file
 
       ext <- tools::file_ext(input_file$name)
 
       file.rename(input_file$datapath,
-                paste(input_file$datapath, ext, sep="."))
+                paste(input_file$datapath, ext, sep ="."))
 
       return(rxylib::read_xyData(file = paste(input_file$datapath, ext, sep = ".")))
 
@@ -162,7 +162,7 @@ shinyServer(function(input, output, session) {
 
   x_axis <- reactive({
 
-    if(is.null(input$x))
+    if (is.null(input$x))
       return(1)
     else
       return(as.numeric(input$x))
@@ -171,7 +171,7 @@ shinyServer(function(input, output, session) {
 
   y_axis <- reactive({
 
-    if(is.null(input$y))
+    if (is.null(input$y))
       return(2)
     else
       return(as.numeric(input$y))
@@ -180,7 +180,7 @@ shinyServer(function(input, output, session) {
 
   blk_nr <- reactive({
 
-    if(is.null(input$blocks))
+    if (is.null(input$blocks))
       return(1)
     else
       return(as.numeric(input$blocks))
@@ -236,9 +236,9 @@ shinyServer(function(input, output, session) {
   ##########################
 
   output$dataset_metadata <- shiny::renderDataTable({
-    if(!is.null(data()))
-      if(input$dataset_meta_button)
-        if(nrow(data()$metadata) > 0)
+    if (!is.null(data()))
+      if (input$dataset_meta_button)
+        if (nrow(data()$metadata) > 0)
           return(data()$metadata)
         else
           return()
@@ -246,9 +246,9 @@ shinyServer(function(input, output, session) {
   })
 
   output$block_metadata <- shiny::renderDataTable({
-    if(!is.null(data()))
-      if(input$block_meta_button)
-        if(nrow(data()$dataset[[blk_nr()]]$metadata_block) > 0)
+    if (!is.null(data()))
+      if (input$block_meta_button)
+        if (nrow(data()$dataset[[blk_nr()]]$metadata_block) > 0)
           return(data()$dataset[[blk_nr()]]$metadata_block)
     else
       return()
@@ -262,7 +262,7 @@ shinyServer(function(input, output, session) {
   output$block_ui <- renderUI({
     if (is.null(data())) { return() }
 
-    if(is.null(names(data()$dataset)) || names(data()$dataset) == ""){
+    if (is.null(names(data()$dataset)) || names(data()$dataset) == "") {
       blk_name <- 1:length(data()$dataset)
     } else {
       blk_name <- names(data()$dataset)
@@ -317,7 +317,7 @@ shinyServer(function(input, output, session) {
   #################################
 
   output$plot <- renderPlot({
-    if(!is.null(data())){
+    if (!is.null(data())) {
 
       col_names <- colnames(data()$dataset[[blk_nr()]]$data_block)
       x_lab <- col_names[x_axis()]
@@ -335,14 +335,13 @@ shinyServer(function(input, output, session) {
       gg_plot <- ggplot(data = df , aes(x = x, y = y)) +
         geom_point() +
         xlab(x_lab) +
-        ylab(y_lab) +
-        theme
+        ylab(y_lab) 
 
-      if(!is.null(ranges$x)){
+      if (!is.null(ranges$x)) {
 
         gg_plot <- gg_plot + xlim(ranges$x)
       }
-      if(!is.null(ranges$y)){
+      if (!is.null(ranges$y)) {
 
         gg_plot <- gg_plot + ylim(ranges$y)
       }
@@ -365,21 +364,21 @@ shinyServer(function(input, output, session) {
 
       writeLines("# Exported by rxylibShiny", file)
 
-      if(input$download_Meta & nrow(data()$metadata) != 0){
+      if (input$download_Meta & nrow(data()$metadata) != 0) {
         write.table(data.frame("# Metadata", "\n"), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
         write.table(data.frame(paste0("# ", data()$metadata[,1]), data()$metadata[,2]), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
         write.table(data.frame("","\n" ), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
       }
 
-      for(i in 1:length(data()$dataset)){
+      for (i in 1:length(data()$dataset)) {
 
-        if(is.null(names(data()$dataset)) || names(data()$dataset) == ""){
+        if (is.null(names(data()$dataset)) || names(data()$dataset) == "") {
           write.table(data.frame("# BLOCK", i), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
         } else {
           write.table(data.frame(paste("#", names(data()$dataset)[i]), ""), file, row.names = FALSE, col.names = FALSE, append = TRUE, quote = FALSE)
         }
 
-        if(input$download_Meta & nrow(data()$dataset[[i]]$metadata_block) != 0){
+        if (input$download_Meta & nrow(data()$dataset[[i]]$metadata_block) != 0) {
           write.table(data.frame(paste0("## ", data()$dataset[[i]]$metadata_block[,1]), data()$dataset[[i]]$metadata_block[,2]), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
           write.table(data.frame("","\n" ), file, col.names = FALSE, row.names = FALSE, quote = FALSE, append = TRUE)
         }
@@ -391,8 +390,8 @@ shinyServer(function(input, output, session) {
 
   ##create download for TKA
   output$export_TKA <- renderUI({
-    if(!is.null(data())){
-      if(attributes(data())$format_name == "Canberra CNF"){
+    if (!is.null(data())) {
+      if (attributes(data())$format_name == "Canberra CNF") {
         downloadButton(outputId = "download_Data_TKA",
                        label = "Download data as .TKA")
 
@@ -418,7 +417,7 @@ shinyServer(function(input, output, session) {
 
   output$plot_transformation <- output$plot_fitting <- renderPlot({
 
-    if(!is.null(data())){
+    if (!is.null(data())) {
 
         col_names <- colnames(data()$dataset[[blk_nr()]]$data_block)
         x_lab <- col_names[x_axis()]
@@ -448,18 +447,18 @@ shinyServer(function(input, output, session) {
         }) ## end switch
 
 
-        if(input$execute_inverse){
+        if (input$execute_inverse) {
           y <- -y
         }
 
-        if(input$execute_wl2energy){
+        if (input$execute_wl2energy) {
           y <-   y * x^2/(4.13566733e-015 * 299792458e+09)
           x <- 4.13566733e-015 * 299792458e+09 / x
           x_lab <- "Energy [eV]"
           y_lab <- "Intensity [a.u.]"
         }
 
-        if(input$execute_energy2wl){
+        if (input$execute_energy2wl) {
 
           x <-  4.13566733e-015 * 299792458e+09/x
           y <-   (y * 4.13566733e-015 * 299792458e+09)/(x^2)
@@ -467,24 +466,28 @@ shinyServer(function(input, output, session) {
           y_lab <- "Intensity [a.u.]"
         }
 
-        if(input$execute_cumsum){
+        if (input$execute_cumsum) {
           y <- cumsum(y)
         }
 
-        if(input$execute_zeroy){
+        if (input$execute_zeroy) {
           y <- vapply(y, FUN = function(Y) {max(0,Y)}, FUN.VALUE = 1)
         }
 
         ## check if logarithmic axis
-        if(input$execute_logx & !input$execute_logy){
+        if (input$execute_logx & !input$execute_logy) {
           x <- log(x)
+          x_lab <- "ln(x)"
         }
-        else if(!input$execute_logx & input$execute_logy){
+        else if (!input$execute_logx & input$execute_logy) {
           y <- log(y)
+          y_lab <- "ln(y)"
         }
-        else if(input$execute_logx & input$execute_logy){
+        else if (input$execute_logx & input$execute_logy) {
           x <- log(x)
           y <- log(x)
+          y_lab <- "ln(y)"
+          x_lab <- "ln(x)"
         }
 
         ## basic plot
@@ -496,18 +499,17 @@ shinyServer(function(input, output, session) {
         gg_transformation <- ggplot(data = df , aes(x = x, y = y)) +
           geom_point() +
           xlab(x_lab) +
-          ylab(y_lab) +
-          theme
+          ylab(y_lab)
 
 
-        if(!is.null(ranges$x_transformation)){
+        if (!is.null(ranges$x_transformation)) {
 
           gg_transformation <- gg_transformation + xlim(ranges$x_transformation)
           df_transformation <- df_transformation[which(df_transformation$x >= ranges$x_transformation[1] &
                                                        df_transformation$x <= ranges$x_transformation[2]),]
 
         }
-        if(!is.null(ranges$y_transformation)){
+        if (!is.null(ranges$y_transformation)) {
 
           gg_transformation <- gg_transformation + ylim(ranges$y_transformation)
           df_transformation <- df_transformation[which(df_transformation$y >= ranges$y_transformation[1] &
@@ -574,7 +576,7 @@ shinyServer(function(input, output, session) {
       a <- model_coefs$a
       w <- model_coefs$w
       mu <- model_coefs$mu
-      out <- a * exp((- 4 *log(2) * (newx - mu)^2)/w^2)
+      out <- a * exp((-4*log(2) * (newx - mu)^2)/w^2)
       return(out)
     }
 
@@ -582,10 +584,10 @@ shinyServer(function(input, output, session) {
 
     fit_model <- function(mod_form, start, dat){
       fit <- try(minpack.lm::nlsLM(formula = mod_form,
-                                   data=dat,
-                                   start=start,
-                                   control = list(minFactor=1/100000, maxiter=500)),
-                 silent=T)
+                                   data = dat,
+                                   start = start,
+                                   control = list(minFactor = 1/100000, maxiter = 500)),
+                 silent = TRUE)
     }
 
     model_func <- reactive({
@@ -616,12 +618,12 @@ shinyServer(function(input, output, session) {
 
     guess <- reactive({
 
-      if(is.null(ranges$x_fitting)){
+      if (is.null(ranges$x_fitting)) {
         ranges$x_fitting <- c(min(data()$dataset[[blk_nr()]]$data_block[,x_axis()]),
                       max(data()$dataset[[blk_nr()]]$data_block[,x_axis()]))
       }
 
-      newx <- seq(from=min(ranges$x_fitting), to=max(ranges$x_fitting), length.out = 100)
+      newx <- seq(from = min(ranges$x_fitting), to = max(ranges$x_fitting), length.out = 100)
       plot$newx <- newx
 
       guess <- model_func()$func(model_coefs(), plot$newx)
@@ -646,19 +648,19 @@ shinyServer(function(input, output, session) {
       plot$mod_form <- mod_form
 
       ## check if a transformation was done. If not, the basic plot from panel DATA will be fitted
-      if(!is.null(df_reac$df_transformation)){
+      if (!is.null(df_reac$df_transformation)) {
         fit <- fit_model(mod_form,
-                         start=model_coefs(),
+                         start = model_coefs(),
                          dat = df_reac$df_transformation)
       } else {
         fit <- fit_model(mod_form,
-                         start=model_coefs(),
+                         start = model_coefs(),
                          dat = df_reac$df_basic_plot)
       }
 
       plot$fit <- fit
 
-      if(inherits(fit, "try-error")){
+      if (inherits(fit, "try-error")) {
         outmsg <- paste0("The fit failed.<br>",
                          "The error was: <code>", attr(fit, "condition")$message, "</code><br>")
         output$fit_print_caption <- renderText("")
@@ -686,22 +688,22 @@ shinyServer(function(input, output, session) {
 
     output$plot_fitting <- renderPlot({
 
-      if(!is.null(data())){
+      if (!is.null(data())) {
 
-        if(!is.null(plot$transformation)){
+        if (!is.null(plot$transformation)) {
 
-        if(length(plot$newx == guess())){
+        if(length(plot$newx == guess())) {
 
           df_guess <- data.frame(x = plot$newx, y = guess())
 
-          if(input$see_guess)
+          if (input$see_guess)
             plot$guess <- geom_line(data = df_guess, aes(x,y), colour = "red")
           else
             plot$guess <- NULL
 
-          if(buttons$fit){
+          if (buttons$fit) {
 
-            if(inherits(plot$fit, "try-error")){
+            if (inherits(plot$fit, "try-error")) {
               plot$fitting <- NULL
             } else {
               plot$fitting <- geom_line(data = data.frame(x = df_reac$df_transformation$x,
@@ -720,18 +722,18 @@ shinyServer(function(input, output, session) {
 
     } else { ## end if !is.null(data())
 
-      if(length(plot$newx == guess())){
+      if (length(plot$newx == guess())) {
 
         df_guess <- data.frame(x = plot$newx, y = guess())
 
-        if(input$see_guess)
+        if (input$see_guess)
           plot$guess <- geom_line(data = df_guess, aes(x,y), colour = "red")
         else
           plot$guess <- NULL
 
-        if(buttons$fit){
+        if (buttons$fit) {
 
-          if(inherits(plot$fit, "try-error")){
+          if (inherits(plot$fit, "try-error")) {
             plot$fitting <- NULL
           } else {
             plot$fitting <- geom_line(data = data.frame(x = df_reac$df_basic_plot$x,

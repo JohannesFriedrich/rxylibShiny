@@ -18,21 +18,17 @@ cache:
 environment:
   global:
     WARNINGS_ARE_ERRORS: 1
+    USE_RTOOLS: true
+    PKGTYPE: source
+    R_ARCH: x64
+    CRAN: http://cran.rstudio.com
 
   matrix:
     - R_VERSION: devel
-      R_ARCH: x64
-      USE_RTOOLS: true
-      PKGTYPE: source
 
     - R_VERSION: release
-      R_ARCH: x64
-      USE_RTOOLS: true
-      PKGTYPE: source
 
     - R_VERSION: stable
-      USE_RTOOLS: true
-      PKGTYPE: source
 
 build_script:
   - travis-tool.sh install_deps
