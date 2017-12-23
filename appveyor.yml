@@ -19,7 +19,7 @@ environment:
   global:
     WARNINGS_ARE_ERRORS: 1
     USE_RTOOLS: true
-    PKGTYPE: source
+    #PKGTYPE: source
     R_ARCH: x64
     CRAN: http://cran.rstudio.com
 
