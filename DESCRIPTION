@@ -15,7 +15,7 @@ Maintainer: Johannes Friedrich <Johannes.Friedrich@uni-bayreuth.de>
 Description: A shiny application for the R package 'rxylib'.
 License: GPL-3
 Depends:
-    R (>= 3.3.2)
+    R (>= 3.4.0)
 Imports:
     shiny (>= 1.0.5),
     rxylib (>= 0.2.1),
