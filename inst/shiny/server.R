@@ -14,6 +14,7 @@ shinyServer(function(input, output, session) {
     ranges$fit <- NULL
 
     buttons$fit <- FALSE
+    buttons$table <- FALSE
 
     plot$fitting <- NULL
     plot$transformation <- NULL
@@ -391,11 +392,13 @@ shinyServer(function(input, output, session) {
   ##create download for TKA
   output$export_TKA <- renderUI({
     if (!is.null(data())) {
-      if (attributes(data())$format_name == "Canberra CNF") {
+      if ("format_name" %in% attributes(data()) && attributes(data())$format_name == "Canberra CNF") {
         downloadButton(outputId = "download_Data_TKA",
                        label = "Download data as .TKA")
 
-      }
+      } 
+    } else {
+      return(NULL)
     }
   })
 
