@@ -14,7 +14,6 @@ shinyServer(function(input, output, session) {
     ranges$fit <- NULL
 
     buttons$fit <- FALSE
-    buttons$table <- FALSE
 
     plot$fitting <- NULL
     plot$transformation <- NULL
